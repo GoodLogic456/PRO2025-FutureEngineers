@@ -3,7 +3,7 @@ from serialtalk.auto import SerialTalk
 st = SerialTalk()
 
 
-#gnd,vcc
+#gnd,vcc 123456
 # , ,rx,tx
 #import sensor,image,time
 #threshHold(L min,L max,A min,A max,B min,B max)
