@@ -3,7 +3,7 @@ from serialtalk.auto import SerialTalk
 st = SerialTalk()
 
 
-#gnd,vcc
+#gnd,vcc 123456789
 # , ,rx,tx
 #import sensor,image,time
 #threshHold(L min,L max,A min,A max,B min,B max)
@@ -16,9 +16,25 @@ threshHold_magenta=(30,100,  50, 90, -15, 20)
 robotSize=(100,50)
 # z, x, y
 blockSizes=[
-    (10,10,10),#red and green
+    (10,10,10),#red and green 10cm in actual equal to screen 0.058cm
     (200,20,100)#magenta
 ]
+#robot angle=use orange and blue lines as a guide for robot angle in terms of the board
+
+#find blobs
+
+#make rectangle of the blob
+#distance=[(normal size of block)*(constant to regulate to mm or inches)]/(hight and width size of rectangle)
+#print(distance)
+
+#perfect track
+
+#line
+
+#curve
+
+#speed=distance, offset from perfect track
+#wheel angle when moving=color of block,robot angle,distance,speed
 sumError=0
 prevError=0
 sensor.reset()  # Reset and initialize the sensor.
@@ -107,9 +123,47 @@ while True:
         anglePID=-(turnAngle-(compensation))
         print(anglePID)
 
+
+
+
+
+
+        # P=(1*error)#ratio of angle to gear rotation
+        # I=(0*sumError)
+        # D=(0*(error-prevError))
+        #compensation=P+I+D
+
+        #if turnAngle>30:offsetSpeed+=30
+        #if turnAngle<-30:offsetSpeed-=30
         cam_data=[speedPID,anglePID,turnAngle,botDirectionAngle,distance]
         print(cam_data)
         st.process()
         pyb.delay(50)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #print(clock.fps())  # Note: OpenMV Cam runs about half as fast when connected
+    # to the IDE. The FPS should increase once disconnected.

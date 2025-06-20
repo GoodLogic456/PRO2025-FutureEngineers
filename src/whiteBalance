@@ -1,0 +1,31 @@
+import sensor, image, time, math
+sensor.reset()
+sensor.set_pixformat(sensor.RGB565)
+sensor.set_framesize(sensor.QVGA)
+sensor.set_vflip(True)
+sensor.set_hmirror(True)
+sensor.set_auto_whitebal(False)
+sensor.set_auto_gain(False)
+sensor.skip_frames(time=2000)
+clock=time.clock()
+WHITE_THRESH=(36,255)
+def check_white_balance(img,ROI_Y,ROI_H):
+    img_contrast=img.copy()
+    img_contrast.gamma_corr(gamma=1.0,contrast=7.0)
+    roi_left=(0,ROI_Y,img.width()//2,ROI_H)
+    roi_right=(img.width()//2,ROI_Y,img.width()//2,ROI_H)
+    left_blobs=img_contrast.find_blobs([WHITE_THRESH],roi=roi_left,pixels_threshold=5,area_threshold=5)
+    right_blobs=img_contrast.find_blobs([WHITE_THRESH],roi=roi_right,pixels_threshold=5,area_threshold=5)
+    left_pixels=sum([b.pixels() for b in left_blobs])
+    right_pixels=sum([b.pixels() for b in right_blobs])
+    img.draw_rectangle(roi_left,color=(255,0,0))
+    img.draw_rectangle(roi_right,color=(0,0,255))
+    balance=(((right_pixels+0.0001)/(left_pixels+0.0001))-1)*30
+    return round(balance,1)
+while True:
+    clock.tick()
+    img=sensor.snapshot()
+    #img.lens_corr(strength=1.49)
+    white_balance=check_white_balance(img,60,100)
+    print(white_balance)
+
