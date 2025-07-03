@@ -1,75 +1,122 @@
 import sensor,time,pyb,math
-sensor.reset()  # Reset and initialize the sensor.
-sensor.set_pixformat(sensor.RGB565)  # Set pixel format to RGB565 (or GRAYSCALE)
-sensor.set_framesize(sensor.QVGA)  # Set frame size to QVGA (320x240)
-sensor.set_vflip(True) # Flips the image vertically
-sensor.set_hmirror(True) # Mirrors the image horizontally
-sensor.set_auto_whitebal(False)
-sensor.set_auto_gain(False)
-sensor.skip_frames(time=2000)  # Wait for settings take effect.
+# =============================================
+# WRO FUTURE ENGINEERS – BLOCK DETECTION MODULE
+# =============================================
+
+# Description:
+#   This module detects red and green LEGO blocks on the competition field.
+#   It identifies which block is nearest to the robot using a proximity scoring formula.
+
+# Core Functionalities:
+#   1. **Image Preprocessing**
+#       - Lens distortion correction to ensure straight lines and better geometry.
+#       - Gamma correction enhances brightness for more reliable detection.
+#       - Image mirroring and flipping adjust for physical camera mounting.
+
+#   2. **Color Thresholding**
+#       - Uses LAB color space thresholds fine-tuned for red and green under varied lighting.
+#       - Auto white balance and gain are disabled for consistency.
+
+#   3. **Blob Detection and Filtering**
+#       - Filters out small noise with `area_threshold=500` and `pixels_threshold=100`.
+#       - Avoids merging blobs to prevent combining separate distant blocks.
+
+#   4. **Proximity Estimation**
+#       - Score = `y + height` of the blob’s bounding box.
+#       - Purpose: Approximates vertical distance on screen (lower = closer).
+#       - Optional formula for stronger discrimination: `(2 * pixels) - area` (commented due to not working when the block is occluded).
+
+#   5. **Block Selection Logic**
+#       - Independently evaluates red and green blobs.
+#       - Chooses the one with the highest vertical score as the closest block.
+#       - Returns both the color and blob information.
+
+#   6. **Debug Visualization**
+#       - Draws bounding boxes on detected blobs.
+#       - Highlights the selected blob’s center with a blue circle.
+
+# Output:
+#   - `block["color"]`: Closest block's color ("red", "green", or "None").
+#   - `block["blob"]`: Details about the selected blob (position, size, etc.).
+sensor.reset()#initialize sensor
+sensor.set_pixformat(sensor.RGB565)#use color vision
+sensor.set_framesize(sensor.QVGA)#320x240 resolution
+sensor.set_vflip(True)#flip image vertically to match real-world orientation
+sensor.set_hmirror(True)#mirror image horizontally to correct camera position
+sensor.set_auto_whitebal(False)#disable auto white balance for stable color detection
+sensor.set_auto_gain(False)#disable auto gain for consistent brightness
+sensor.skip_frames(time=2000)#wait for settings to apply
 clock=time.clock()
-blockSizes=[#z,x,y
-    (5,5,10),#red and green 10cm in actual equal to screen 0.058cm
-    (200,20,100)#magenta
-]
-threshHold_red  =(0,39, 18, 38,-128, 23)
-threshHold_green=(0,53,-28,-11,  12,127)
+
+def find_block(img,img_debug):
+    color="None"
+    blob=None
+    nearestRed=None
+    nearestGreen=None
+    red_val=0
+    green_val=0
+    # thresholds in LAB format for color filtering
+    threshold_red=(0,100,24,127,-16,127)
+    threshold_green=(0,52,-128,-15,-128,127)
+    
+    # detect blobs with minimum size; no merging to prevent combining distant blocks
+    red=img.find_blobs([threshold_red],area_threshold=500,pixels_threshold=100,merge=False)
+    green=img.find_blobs([threshold_green],area_threshold=500,pixels_threshold=100,merge=False)
+    if not red and not green:return {"color":"None","blob":None}
+
+    if red: # evaluate all red blobs
+        for b in red:
+            img_debug.draw_rectangle(b.rect(),color=(255,0,0))
+            val=b.y()+b.h()
+            if val>red_val: # update nearest red
+                nearestRed=b
+                red_val=val
+
+    if green: # evaluate all green blobs
+        for b in green:
+            img_debug.draw_rectangle(b.rect(),color=(0,255,0))
+            val=b.y()+b.h()                                                #(2*b.pixels())-b.area()
+            if val>green_val: # update nearest green
+                nearestGreen=b
+                green_val=val
+
+    # choose the blob with the higher score
+    if nearestRed and nearestGreen:
+        if red_val>=green_val:
+            color="red"
+            blob=nearestRed
+        else:
+            color="green"
+            blob=nearestGreen
+    elif nearestRed:
+        color="red"
+        blob=nearestRed
+    elif nearestGreen:
+        color="green"
+        blob=nearestGreen
+    else:
+        color="None"
+        blob=None
+    
+    # draw dot at blob center
+    if nearestRed or nearestGreen:img_debug.draw_circle(blob.cx(),blob.cy(),5,color=(0,0,255),fill=True)
+    return {"color":color,"blob":blob}#return blob info and color if found
+snap_distance=None
+peak_distance=0
 while True:
     clock.tick()
-    img=sensor.snapshot()#size(x,y)=(320,240)
-    red=img.find_blobs([threshHold_red],area_threshold=300,merge=False)
-    green=img.find_blobs([threshHold_green],area_threshold=300,merge=False)
-    seen=[0,0]#red,green
-    if len(red)>=1:#see all red blocks
-        nearestDistanceRed=[999999,0]
-        count=0
-        while count<len(red):
-            blob=red[count]
-            seen[0]=1
-            img.draw_rectangle(blob[0:4],color=(255,0,0))
-            #img.draw_cross(blob[5],blob[6],color=(255,0,0))
-            aveHW=(blob[2]+blob[3])/2
-            aveBlock=(blockSizes[0][1]+blockSizes[0][2])/2
-            distanceRed=((aveBlock*290)/aveHW)-1
-            if distanceRed<nearestDistanceRed[0]:
-                nearestDistanceRed[0]=distanceRed
-                nearestDistanceRed[1]=count
-            count+=1
-    if len(green)>=1:#see all green blocks
-        nearestDistanceGreen=[999999,0]
-        count=0
-        while count<len(green):
-            blob=green[count]
-            seen[1]=1
-            img.draw_rectangle(blob[0:4],color=(0,255,0))
-            #img.draw_cross(blob[5],blob[6],color=(0,255,0))
-            aveHW=(blob[2]+blob[3])/2
-            aveBlock=(blockSizes[0][1]+blockSizes[0][2])/2
-            distanceGreen=((aveBlock*290)/aveHW)-1
-            if distanceGreen<nearestDistanceGreen[0]:
-                nearestDistanceGreen[0]=distanceGreen
-                nearestDistanceGreen[1]=count
-            count+=1
-    if seen!=[0,0]:
-        color=""
-        if seen==[1,1]:#see red and green
-            if nearestDistanceRed[0]<nearestDistanceGreen[0]:
-                print("red is closer than green")
-                color="red"
-                blob=red[nearestDistanceRed[1]]
-                img.draw_circle(blob[5],blob[6],10,color=(0,0,255),fill=True)
-            else:
-                print("green is closer than red")
-                color="green"
-                blob=green[nearestDistanceGreen[1]]
-                img.draw_circle(blob[5],blob[6],10,color=(0,0,255),fill=True)
-        elif seen==[1,0]:
-            print("only see red")
-            color="red"
-            blob=red[nearestDistanceRed[1]]
-            img.draw_circle(blob[5],blob[6],10,color=(0,0,255),fill=True)
-        elif seen==[0,1]:
-            print("only see green")
-            color="green"
-            blob=green[nearestDistanceGreen[1]]
-            img.draw_circle(blob[5],blob[6],10,color=(0,0,255),fill=True)
+    img_debug=sensor.snapshot()#capture raw image
+    img_debug=img_debug.lens_corr(strength=1.53,x_corr=-0.04)#correct lens distortion
+    #img_debug=img_debug.crop(x_scale=1.151,y_scale=1.159,roi=(21,33,278,207))#crop usable undistorted region
+    img_debug.gamma_corr(gamma=1.5)#boost brightness for better visibility
+    img=img_debug.copy()#clean image for blob processing
+    block=find_block(img,img_debug)
+    distance=None
+    if block["color"]!="None":
+        distance=240-(block["blob"][1]+block["blob"][3])#works even when there is occlusion
+        snap_distance=distance
+        if distance>peak_distance:peak_distance=distance
+        
+    print(time.time(),distance,snap_distance,peak_distance)
+    # block["color"] gives detected block color ("red", "green", or "None")
+    # block["blob"] gives blob info like position and size
