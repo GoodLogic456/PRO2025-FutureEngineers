@@ -91,9 +91,10 @@ To help the robot understand its surroundings, it uses different sensors.
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/69e7000d-ab9b-4903-9afd-d118d461ae51">There is also a color sensor facing the ground. It can see colors like blue, orange, or white on the floor. The robot uses this to detect lines at corners to spot corners, and know when to turn. This is also used to determine the direction of movement of the robot whether clockwise or counter-clockwise. 
 
 ### Camera and Communication
-The robot uses an OpenMV H7 Plus camera mounted at the front. The camera is connected using an OFDL breakout board (https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/models), which makes it easier to attach to the EV3 brick. More information about the board can be found at: [https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff](https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff). The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/33963225-7188-40be-bf5c-0406b33ba5ad">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera is connected using an OFDL breakout board (https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/models), which makes it easier to attach to the EV3 brick. More information about the board can be found at: [https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff](https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff). The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
 
-<img align="center" width="60%" height="auto" src="https://github.com/user-attachments/assets/e2d0fb48-4ba0-4395-8dbb-bed20a0102cb">
+
+<img align="center" src="https://github.com/user-attachments/assets/e2d0fb48-4ba0-4395-8dbb-bed20a0102cb">
 
 ### Image Processing
 The OpenMV H7 Plus camera processes images by first dividing the screen into two regions of interest (ROIs). It is marked with red and blue boxes. These ROIs help the robot focus on specific areas for black walls. 
