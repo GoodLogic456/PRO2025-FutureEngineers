@@ -15,9 +15,10 @@ This repository contains engineering materials of a self-driven vehicle's model.
 
 # 🛑 MOBILITY MANAGEMENT 🛑
 ## Motor and Steering System
-The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera** and two **(2) Lego EV3 ultrasonic sensors**. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/f1fe00ac-55de-432c-b491-ec82b08ee9db">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera** and two **(2) Lego EV3 ultrasonic sensors**. 
 
 The robot uses **Proportional-Derivative** control to make steering more accurate. This system helps the robot align its actual turning angle with the desired angle calculated from camera feedback. The difference between the actual turning angle and the computed desired angle is the error. The goal then is to drive this error to zero (or near zero). This is achieved by compensating for the error in the function `turnAngle2()`.
+
 
 ```
 def turnAngle2(kp, kd, balance):
@@ -51,7 +52,8 @@ def turnAngle2(kp, kd, balance):
     fw.run(fwspeed)
 ```
 ## Wheel and Motor Selection for Stability
-The motors were picked because they are strong, reliable, and have enough turning power (torque) to move the robot smoothly on the track. The robot also uses hard wheels with flat edges in both the front and back. This design gives the robot better grip and control when turning. Since the wheels are the same size and shape, the robot stays level, which helps the color sensor stay flat so it can read the floor properly. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/d57f52f2-d22a-41c6-8709-94eb0e3f3ed6">The motors were picked because they are strong, reliable, and have enough turning power (torque) to move the robot smoothly on the track. The robot also uses hard wheels with flat edges in both the front and back. This design gives the robot better grip and control when turning. Since the wheels are the same size and shape, the robot stays level, which helps the color sensor stay flat so it can read the floor properly. 
+
 
 ## Chassis Build and Balance
 The robot’s body, or chassis, is made of LEGO parts. It is strong but not heavy, and it holds all the parts in place. The motors, EV3 intelligent brick, camera, and sensors are mounted carefully to keep the robot balanced. The weight is spread out evenly to stop the robot from tipping during sharp turns. The final design makes the robot steady, smooth, and ready to finish the course without losing control.
