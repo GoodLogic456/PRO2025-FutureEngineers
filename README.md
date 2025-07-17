@@ -143,6 +143,341 @@ Once the closest block is found, the camera calculates an error value. This erro
 
 In the final step, the camera sends the `black_balance` value, the `error`, and the estimated `distance` to the EV3 robot. This data helps the robot adjust its position and angle so it can correctly face the block based on what the camera sees.
 
-![Obstacle Management](https://github.com/user-attachments/assets/d3a3c617-cc3f-46df-97a0-300f5e605dd0)
+<img align="center" width="70%" height="auto" src="https://github.com/user-attachments/assets/6b8f1d10-029a-456f-b5c8-8af17002246f">
 
+<br>
+</br>
 
+## Black Area Detection for Wall
+To help the robot stay centered on the track or avoid walls, the camera checks how much black is seen on the left and right sides of the image. It uses a defined threshold to find black blobs and calculates a **"white balance"** value based on the difference in black pixel count between the two sides. 
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/4360e300-0cc4-43f7-a060-8b79762d1fcb"/></td>
+  </tr>
+</table>
+
+If one side has more black than the other, the robot can adjust its path to stay in the middle or prepare for a turn. The robot avoids hitting walls by checking how much black it sees on the left and right sides of the camera view. This is done in the `check_color_balance()` function:
+
+```
+def check_color_balance(img,img_debug,ROI_Y,ROI_H):
+    img_contrast=img.copy()
+    img_contrast.gamma_corr(gamma=1.3,contrast=2.2)
+    roi_left=(0,ROI_Y,img.width()//2,ROI_H)
+    roi_right=(img.width()//2,ROI_Y,img.width()//2,ROI_H)
+    BLACK_THRESH=(0, 93, -128, 0, -7, 36)
+    Lblack_blobs=img_contrast.find_blobs([BLACK_THRESH],roi=roi_left,pixels_threshold=200)
+    Rblack_blobs=img_contrast.find_blobs([BLACK_THRESH],roi=roi_right,pixels_threshold=200)
+    Lblack_pixels=sum([b.pixels() for b in Lblack_blobs])
+    Rblack_pixels=sum([b.pixels() for b in Rblack_blobs])
+    if True: #drawings for debugging
+        img_debug.draw_rectangle(roi_left,color=(255,0,0))#draw red box on left
+        img_debug.draw_rectangle(roi_right,color=(0,0,255))#draw blue box on right
+        for blob in Lblack_blobs:
+            img_debug.draw_rectangle(blob.rect(),color=(0,255,0))
+        for blob in Rblack_blobs:
+            img_debug.draw_rectangle(blob.rect(),color=(0,255,0))
+    black_balance=max(-1100,min(1100,(Lblack_pixels-Rblack_pixels)/8))
+    return int(black_balance)
+```
+- If the left side has more black, the robot knows it is too close to the left wall and should move right, and vice versa.
+- This `black_balance` value helps the robot stay in the middle.
+
+## Block Detection and Color Filtering
+The camera also looks for red and green blocks on the course by enhancing the image with contrast and gamma correction and applying color filtering in LAB (instead of grayscale) format. It searches for blobs that match red or green thresholds and selects the one that is closest to the bottom of the screen, which usually means it’s the nearest block. This information can help the robot decide how to approach blocks.
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/e3d8cf27-f619-4579-837d-4d4063adc283"/></td>
+  </tr>
+</table>
+
+The robot uses color to find objects in front of it. This is done in `find_block()`:
+```
+def find_block(img,img_debug):
+    img_contrast=img.copy()
+    img_contrast.gamma_corr(gamma=1.9, contrast=1.1,brightness=-0.1)
+    color="None"
+    blob=None
+    nearestRed=None
+    nearestGreen=None
+    red_val=0
+    green_val=0
+    #thresholds in LAB format for color filtering
+    threshold_red=(0, 40, 5, 127, -10, 55)
+    threshold_green=(25, 51, -85, -21, -7, 73)
+    #detect blobs with minimum size; no merging to prevent combining distant blocks
+    red=img_contrast.find_blobs([threshold_red],pixels_threshold=100,merge=False)
+    green=img_contrast.find_blobs([threshold_green],pixels_threshold=100,merge=False)
+    if not red and not green:return {"color":"None","blob":None}
+    if red:# evaluate all red blobs
+        for b in red:
+            img_debug.draw_rectangle(b.rect(),color=(255,0,0))
+            val=b.y()+b.h()
+            if val>red_val:# update nearest red
+                nearestRed=b
+                red_val=val
+    if green:# evaluate all green blobs
+        for b in green:
+            img_debug.draw_rectangle(b.rect(),color=(0,255,0))
+            val=b.y()+b.h()                            #(2*b.pixels())-b.area()
+            if val>green_val:# update nearest green
+                nearestGreen=b
+                green_val=val
+    # choose the blob with the higher score
+    if nearestRed and nearestGreen:
+        if red_val>=green_val:
+            color="red"
+            blob=nearestRed
+        else:
+            color="green"
+            blob=nearestGreen
+    elif nearestRed:
+        color="red"
+        blob=nearestRed
+    elif nearestGreen:
+        color="green"
+        blob=nearestGreen
+    else:
+        color="None"
+        blob=None
+    return {"color":color,"blob":blob}#return blob info and color if found
+```
+- It checks for red and green blocks using color filters.
+- It picks the block closest to the bottom of the image because that one is nearest:
+```
+   val=b.y()+b.h()
+```
+## Calculating Target Error
+Once a block is detected, the camera calculates an "error" value by comparing the block’s position with the center of the image. If the block is red, the target is slightly offset to the right; if it is green, it is offset to the left. 
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/63b2a3f2-bb3b-4c54-902b-34c8c69dfbb4"/></td>
+  </tr>
+</table>
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/838445fb-3571-498f-b8a8-872357acd197"/></td>
+  </tr>
+</table>
+
+This gives the robot a point to aim for and the error tells how far it needs to turn left or right to face the target. Visual feedback, like circles and arrows, is drawn on the image for debugging and testing. This is done in the `target_point()` function:
+
+```
+def target_point(img_debug,block,color,k):
+    offset_scaler=int(k*(block.y()+block.h()))
+    if color=="red":offset_x=(block.x()+block.w())+offset_scaler#right side-offset
+    if color=="green":offset_x=block.x()-offset_scaler#left side-offset
+    draw_x=max(0,min(319,offset_x))
+    img_debug.draw_circle(draw_x,block.cy(),3,color=(0,255,255),fill=True)#target for cursor
+    img_debug.draw_arrow(img_center[0],img_center[1],draw_x,img_center[1],color=(0,0,255))
+    error=offset_x-img_center[0]
+    img_debug.draw_string(img_center[0]-30,img_center[1]-10,"Err: "+str(error),color=(255,255,255),scale=1)
+    return error
+```
+
+- `offset_scaler` shifts the target point depending on the block's vertical position, giving more offset the closer it is.
+- `k` is a tuning value that controls how much the robot offsets its aim depending on how close the block is.
+- For red blocks, the robot aims slightly to the right: `offset_x` is set to the right edge of the block plus offset.
+- For green blocks, it aims slightly to the left: `offset_x` is set to the left edge minus offset.
+- The error is calculated as the difference between the target position `offset_x` and the image center `img_center[0] = 160`.
+- This error is used to steer the robot left or right to face the block.
+- Circles, arrows, and error text are drawn on the image for debugging.
+
+## Block Distance Detection
+The robot checks how close the block is using the following code:
+
+```
+distance=240-(block["blob"][1]+block["blob"][3])#works even when there is occlusion
+```
+If the block is near the bottom of the image, it means the block is close to the robot.
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/7a007f3c-e1a3-40b9-adb7-e339b21b47e8"/></td>
+  </tr>
+</table>
+
+## Sending Data to the Robot
+
+```
+from serialtalk.auto import SerialTalk
+st=SerialTalk()
+cam_data=[0,0,0]
+def cam():return cam_data# global cam_data
+st.add_command(cam, "repr")
+
+cam_data=[white_balance,error,distance]
+    print(cam_data)
+    st.process()
+```
+
+At the end of every frame, the camera sends three (3) important values to the EV3 brick using SerialTalk over UART communication. These values are measured from specific parts of the image called Regions of Interest (ROIs), which are focused areas the camera checks. The camera uses color thresholds, ROIs, and pixel thresholds in the `find_blobs()` function to detect walls and blocks. The three data values sent are as follows:
+1. **White balance** – difference in black pixel areas between left and right, helps the robot stay in the middle of the path
+2. **Error** – how far the target is from the center
+3. **Distance** – how close the detected block is
+
+This data is used by the robot to decide how to move, steer, or stop.
+
+## Control Logic and Behavior
+The robot's main control loop reads sensor values and camera data, then decides how to move. If the camera sends a large left or right balance, the error is deemed large, thus the robot adjusts steering strongly to keep centered. It uses Proportional-Derivative (PD) control in the function `turnAngle2()` to match the steering motor angle with the desired direction from the camera. The robot continually computes for this error value and adjusts the front motor speed to reduce this error.
+
+```
+def turnAngle2(kp, kd, balance):
+    p = 0
+    d = 0
+    rot = 0
+    prev_error = 0
+
+    mRot = fw.angle()   # current motor rotation
+   
+    if balance > 0:
+        rot = (max_turnR/1100) * balance
+    else:
+        rot = (max_turnL/-1100) * balance * 1.25    # *1.35
+        # *1.35
+   
+    print("mRot:" + str(mRot))
+    print("rot:" + str(rot))
+    print("balance:" + str(balance))
+   
+    error = mRot - rot
+
+    p = -1.0 * kp * error
+    d = -1.0 * kd * (error - prev_error)  
+    fwspeed = int(p + d )
+    prev_error = error
+   
+    print("fwspeed:" + str(fwspeed))
+    print(" ")
+   
+    fw.run(fwspeed)
+```
+## Wall Avoidance and PD Control
+If the robot gets too close to the left or right wall, it activates a PD control behavior using the `PIDultraL()` or `PIDultraR()` functions. These functions make the robot turn away from the wall smoothly and maintain a safe distance. The robot also adjusts its back motor speed using `setBWSpeed()`, which varies the speed based on how far it is to a wall.
+
+```
+def PIDultraL(kp, kpf, kdf, min, max, target):
+    p = 0
+    d = 0
+    rot = 0
+    mRot = fw.angle()   # current motor rotation
+
+    global fwspeed, bwspeed, prev_error, error, direction
+
+    ultraDistL = Lultra.distance()
+
+    error = target - ultraDistL
+    rot = kp * error
+  
+    if error > 0:
+        if mRot < rot:
+            p = kpf * abs(rot)
+            d = kdf * (error - prev_error)
+            prev_error = error
+            fwspeed = int(p + d)
+        elif mRot > rot:
+            p = kpf * abs(rot)
+            d = kdf * (error - prev_error)
+            prev_error = error
+            fwspeed = int(-(p + d))
+   
+        fw.run(fwspeed)
+   
+    else:
+        fw.stop()
+
+    # if abs(rot) > 0:
+    #     bwspeed = (abs((min - max) / (1100 * abs(rot))) + max)
+    #     bwspeed = int(bwspeed)
+    #     bw.run(bwspeed)    #     bw.run(300)
+    # else:
+    #     bw.run(min)
+
+    print("error:" + str(error))
+```
+
+```
+def PIDultraR(kp, kpf, kdf, min, max, target):
+    p = 0
+    d = 0
+    rot = 0
+    mRot = fw.angle()   # current motor rotation
+
+    global fwspeed, prev_error, error, direction
+
+    ultraDistR = Rultra.distance()
+
+    error = ultraDistR - target
+    rot = kp * error
+
+    if error < 0:
+        if mRot > rot:
+            p = kpf * rot
+            d = kdf * (error - prev_error)
+            prev_error = error
+            fwspeed = int(p + d)
+        elif mRot < rot:
+            p = kpf * rot
+            d = kdf * (error - prev_error)
+            prev_error = error
+            fwspeed = int(abs((p + d)))
+
+        fw.run(fwspeed)
+
+    else:
+        fw.stop()
+    
+    # if abs(rot) > 0:
+    #     bwspeed = (abs((min - max) / 1100 * abs(rot)) + max)
+    #     bwspeed = int(bwspeed)
+    #     bw.run(bwspeed)    #     bw.run(300)
+    # else:
+    #     bw.run(min)
+
+    print("error:" + str(error))
+```
+
+```
+def setBWSpeed(min, max, balance):  # min and max must be positive
+    bwSpeed = (min - max) / 1100 * abs(balance) + max
+    bwSpeed = int(bwSpeed)
+    bw.run(bwSpeed)
+```
+
+## Color Detection and Turning
+The robot uses the color sensor to detect turn markers on the ground. If it sees orange first, it triggers the clockwise direction movement; if it sees blue first, it activates the counterclockwise direction movement. The robot keeps track of direction using a direction variable. For each turn, the robot runs through a turn sequence: it steers hard toward the turn, keeps driving until the opposite color is seen, and then turns back to straighten. After each successful turn, it increases the run counter by one.
+
+## Lap Counting and Finish
+The robot completes turns until it reaches a total of 12 turns, stored in the run variable. This usually represents 3 full laps with 4 turns each. Once the robot finishes its laps, it resets the back wheel angle to 0 and drives forward a short distance to simulate parking or completing the course.
+
+```
+while run <= 11:
+    ...
+    if rgb_to_color(sensor.rgb()) == 1: # orange
+        if direction == 0 or direction == 1: # no direction or clockwise
+            ...
+            run = run + 1
+            direction = 1
+    if rgb_to_color(sensor.rgb()) == -1: # blue
+        if direction == 0 or direction == -1: # no direction or counter-clockwise
+		...
+            run = run + 1
+            direction = -1
+    ...
+    if direction == 0:
+        ...
+        run = 0
+if run > 11:
+   ...
+    run = 20
+if run ==20:
+    fw.stop()
+    bw.stop()
+```
+
+The robot combines camera input, color detection, ultrasonic distance sensing, and precise motor control to navigate an obstacle-filled track. It automatically detects when to turn, avoids walls, and stays centered. By combining PD and PID control with color-based behaviors, it can complete the course smoothly and reliably.
+
+## 💡 <mark> How to Improve Obstacle Management</mark>
+**Adding a backup behavior** can help the robot recover when it gets too close to an obstacle and cannot turn safely. If the detected block is very close (for example, when the distance is below a certain threshold), the robot can briefly reverse to create more space before trying to turn again. This extra room gives the front wheel more angle to steer and reduces the chance of hitting the obstacle. The backup motion should be short and slow to stay controlled, and it should only happen when needed. This behavior makes the robot more flexible and helps it continue moving even in tight spots or when the path is partially blocked.
