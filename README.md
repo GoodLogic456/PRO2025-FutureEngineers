@@ -144,20 +144,16 @@ Once the closest block is found, the camera calculates an error value. This erro
 
 In the final step, the camera sends the `black_balance` value, the `error`, and the estimated `distance` to the EV3 robot. This data helps the robot adjust its position and angle so it can correctly face the block based on what the camera sees.
 
-<img align="center" width="70%" height="auto" src="https://github.com/user-attachments/assets/6b8f1d10-029a-456f-b5c8-8af17002246f">
-
-<br>
-</br>
-
-## Black Area Detection for Wall
-To help the robot stay centered on the track or avoid walls, the camera checks how much black is seen on the left and right sides of the image. It uses a defined threshold to find black blobs and calculates a **"white balance"** value based on the difference in black pixel count between the two sides. 
-
 <table>
   <tr>
     <td><img src="https://github.com/user-attachments/assets/5993c869-aabb-49ea-9a77-09fcefcd0261"/></td>
   </tr>
 </table>
+<br>
+</br>
 
+## Black Area Detection for Wall
+To help the robot stay centered on the track or avoid walls, the camera checks how much black is seen on the left and right sides of the image. It uses a defined threshold to find black blobs and calculates a **"white balance"** value based on the difference in black pixel count between the two sides. 
 
 If one side has more black than the other, the robot can adjust its path to stay in the middle or prepare for a turn. The robot avoids hitting walls by checking how much black it sees on the left and right sides of the camera view. This is done in the `check_color_balance()` function:
 
