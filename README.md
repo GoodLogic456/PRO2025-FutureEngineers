@@ -1,5 +1,5 @@
 ### Introduction
-<img align="right" width="250" height="auto" src="https://github.com/user-attachments/assets/f133dc92-9622-44ed-b9c5-4ef0885c1dcc">
+<img align="right" width="350" height="auto" src="https://github.com/user-attachments/assets/f133dc92-9622-44ed-b9c5-4ef0885c1dcc">
 
  This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **PRO Future Engineers 2025**
 
@@ -154,9 +154,10 @@ To help the robot stay centered on the track or avoid walls, the camera checks h
 
 <table>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/4360e300-0cc4-43f7-a060-8b79762d1fcb"/></td>
+    <td><img src="https://github.com/user-attachments/assets/5993c869-aabb-49ea-9a77-09fcefcd0261"/></td>
   </tr>
 </table>
+
 
 If one side has more black than the other, the robot can adjust its path to stay in the middle or prepare for a turn. The robot avoids hitting walls by checking how much black it sees on the left and right sides of the camera view. This is done in the `check_color_balance()` function:
 
