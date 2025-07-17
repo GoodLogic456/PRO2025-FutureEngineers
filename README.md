@@ -119,7 +119,7 @@ The camera block detection uses the whole screen as its ROI to prioritize actual
 </table>
 <table>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/b0731fa0-a843-4fc4-8278-d2ed4f29482a"/></td>
+    <td><img src="https://github.com/user-attachments/assets/074bd0e9-8ad0-4da8-a002-f74b28f84746"/></td>
   </tr>
 </table>
 
@@ -133,3 +133,16 @@ One way to improve the robot’s power and sense management is by **adding a gyr
 **Moving the camera farther back** on the robot can improve both power and sense management. When the camera is placed farther from the front, it can see a wider area of the path ahead, including more of the walls and obstacles on both sides. This gives the robot more time to react, reducing the need for sudden turns or quick power changes that waste energy. With more visual information, the robot can plan smoother movements, making driving more efficient and helping it avoid sharp corrections. This improves overall control while saving power and making obstacle detection more reliable.
 
 # 🛑 OBSTACLE MANAGEMENT 🛑
+## Camera Assistance
+The OpenMV H7 Plus camera is used to help the robot see and understand its environment. It is set to color mode with a resolution of 320×240 pixels and adjusted using vertical flip and horizontal mirror so that the camera view matches the real-world direction of the robot. Automatic settings such as white balance and gain are turned off to keep the image consistent across different lighting conditions. The camera also applies lens correction to reduce distortion and make object shapes appear more accurate.
+
+The following flowchart outlines a step-by-step image processing sequence for a vision-based robot system. It begins with setting up the camera, which prepares the OpenMV module to start capturing images. The next stage focuses on finding color balance. During this step, the screen is split into two regions - left and right Regions of Interest (ROIs) - to help the camera examine each side separately. In each ROI, the system searches for black blobs and counts how many black pixels are present. The camera then uses this pixel data to calculate a value called `black_balance`, which represents a cleaner and more useful interpretation of the scene.
+
+After establishing color balance, the camera begins the process of detecting blocks. It identifies blocks by finding blobs and measuring how close they are to the robot. This distance is estimated using the formula `blob.y + blob.h`, where higher values indicate that the block is nearer. The camera then selects the blob that appears closest.
+Once the closest block is found, the camera calculates an error value. This error represents the horizontal difference between the center of the image and a target point placed to the left or right of the detected block. The error is scaled based on how far the block is from the robot.
+
+In the final step, the camera sends the `black_balance` value, the `error`, and the estimated `distance` to the EV3 robot. This data helps the robot adjust its position and angle so it can correctly face the block based on what the camera sees.
+
+![Obstacle Management](https://github.com/user-attachments/assets/d3a3c617-cc3f-46df-97a0-300f5e605dd0)
+
+
