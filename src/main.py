@@ -8,6 +8,8 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 from serialtalk.auto import SerialTalk
+ 
+
 
 
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
@@ -20,6 +22,7 @@ fw = Motor(Port.C) #left and right
 sensor = ColorSensor(Port.S3) #color sensor
 Lultra = UltrasonicSensor(Port.S2) #left ultrasonic sensor
 Rultra = UltrasonicSensor(Port.S4) #right ultrasonic sensor
+# Infra = InfraredSensor(Port.S4)
 
 # db = DriveBase(lm,rm,62, 19*8)
 
@@ -35,6 +38,7 @@ direction = 0
 max_turnR = 900   #1274
 max_turnL = -900 # -2795
 fw.reset_angle(0)
+bw.reset_angle(0)
 fwspeed = 0
 bwspeed = 0
 prev_error = 0
@@ -43,41 +47,23 @@ run = 0
 LeftWins = True
 sensedBlock = 1
 turn = 0
+prevBW = 0
+lap_count = 0
+timer = StopWatch()
 
 
-# def turnAngle(kp, kd, BRB):
-#     p = 0
-#     d = 0
-#     rot = 0
-#     prev_error = 0
+curr_time = 0
+prev_time = 0
+time_elapsed = 0
+ignore = False
 
-#     mRot = fw.angle()   # current motor rotation
-    
-#     if BRB > 0:
-#         rot = (max_turnR/1100) * BRB 
-#     else:
-#         rot = (max_turnL/-1100) * BRB  # *1.35
+prev_distance = 0
+prev_Bpik = 0
+offTheWall = 1
+colorPriority = 0
 
-#     # print("mRot:" + str(mRot))
-#     # print("rot:" + str(rot))
-#     print("BRB:" + str(BRB))
-    
-#     error = mRot - rot
 
-#     p = -1.0 * kp * error
-#     d = -1.0 * kd * (error - prev_error)  
-#     fwspeed = int(p + d )
-#     prev_error = error
-    
-#     # print("fwspeed:" + str(fwspeed))
-#     # print(" ")
 
-#     if fwspeed > 1100:
-#         fwspeed = 1100
-#     elif fwspeed < -1100:
-#         fwspeed = -1100
-    
-#     fw.run(fwspeed)
 
 
 def turnAngle2(kp, kd, balance):
@@ -278,7 +264,7 @@ def turnAngle3(kpf, kdf, balance):
         fwspeed = int(-(p + d)) 
         fw.run(fwspeed)
 
-def turnAngle4(kpf, kdf, MGbalance):
+def turnAngleMG(kpf, kdf, MGbalance):
 
     p = 0
     d = 0
@@ -300,16 +286,35 @@ def turnAngle4(kpf, kdf, MGbalance):
         prev_error = error
         fwspeed = int(-(p + d))
         fw.run(fwspeed)
+
+  
+
+
+def turnAngleMG2(kpf, kdf, MGbalance): ##direction = 1
+
+    p = 0
+    d = 0
+    rot = 0
+    mRot = fw.angle()   # current motor rotation
+
+    global fwspeed, bwspeed, prev_error, error, direction
+
+    if balance > 0:
+        rot = (max_turnR/1100) * MGbalance
     else:
+        rot = (max_turnL/-1100) * MGbalance * 1.35    # *1.35
+
+    error = mRot - rot
+    
+    if mRot < rot:
         p = kpf * error
         d = kdf * (prev_error - error)
         prev_error = error
-        fwspeed = int(-(p + d)) 
+        fwspeed = int(p + d)
         fw.run(fwspeed)
-  
 
-def turnAngle(kpf, kdf, BRB):
   
+def turnAngle(kpf, kdf, BRB):  
     p = 0
     d = 0
     rot = 0
@@ -338,11 +343,7 @@ def turnAngle(kpf, kdf, BRB):
         fw.run(fwspeed)
   
 
-
-
-
-
-######################3
+######################
 def rgb_to_color(rgb):
     r, g, b = rgb
     if r <= 20:
@@ -350,320 +351,465 @@ def rgb_to_color(rgb):
         return -1    # blue
 
     elif b <= 10:
-        ev3.speaker.beep()
+        # ev3.speaker.beep()
         return 1     # orange
 
     else:
         return 0     # white
 #####################
 
+def backToZeroSteering(bwPower, fwPower, color, steering=0):
+    bw.run(bwPower)
+    colorPriority = 0
+    while fw.angle() >= steering:  #steering facing to the right
+        if color != 0:
+            bw.stop()
+            colorPriority = 1
+            break
+        fw.run(-fwPower)
+    
+    if colorPriority == 0:
+        while fw.angle() < steering:   #steering facing to the left
+            if color != 0:
+                bw.stop()
+                colorPriority = 1
+                break
+            fw.run(fwPower)
+
+    fw.stop()
+
+    # if colorPriority:
+    #     ev3.speaker.beep()
 
 
-while run <= 8:
+    return colorPriority
+    
+
+while True:
+# while run <= 11:
 
     status, data = st.call('cam')
-    balance, BRB, distance, MGbalance = data
-    BRB = BRB * 1.25
-    # print("BRB: " + str(BRB))
-    # print("distance: " + str(distance))
-
+    balance, BRB, distance, MGbalance, pik, Bpik, balance2, BRC = data
+    BRB = BRB * 1.5
+    
     color = rgb_to_color(sensor.rgb())
-    print(color)
-    # print("Direction: " + str(direction))
-    # print("balance: " + str(balance))
-
-    # print("Rotation: " + str(fw.angle()))
-
     Lultra_distance = Lultra.distance()
     Rultra_distance = Rultra.distance()
+    # Infra_distance = Infra.distance()
+    
+    # print("color: " + str(color))
+    # print("BRB: " + str(BRB))
+    # print("distance: " + str(distance))
+    # print("run: " + str(run))
+    # print("distance: " + str(distance)) 
+    # print("Infra_distance: " + str(Infra_distance))    
+    # print("Bpik: " + str(Bpik))
+    # print("BRB: " + str(BRB))
+    # print("Lultra_distance: " + str(Lultra_distance))
+    # print("Rultra_distance: " + str(Rultra_distance))
 
-#############
-    if BRB != 0:
+# #############
+
+    # MODE: block avoidance
+    if pik >= 600 and distance <= 240 and color == 0:
         # ev3.speaker.beep()
-        turnAngle(1000, 0, BRB)
-        setBWSpeedRB(300, 400, BRB)
-        sensedBlock = 1
+        # turnAngle(650, 2.25, BRB)
 
+        if distance < 30:
+            backToZeroSteering(0, 1000, 0, steering=0)
 
-    # elif balance != 0 and BRB == 0:
-    #     # ev3.speaker.beep()
-    #     setBWSpeed(100, 400, balance)
-    #     turnAngle3(50, 10, balance)
-    
-    
-    # elif rgb_to_color(sensor.rgb()) == 1: # orange
-    #     if direction == 0 or direction == 1: # no direction or clockwise
-    #         if BRB == 0:
-    #             while fw.angle() <= 900 and BRB == 0:
-    #                 bw.run(300)
-    #                 # ev3.speaker.beep()
-    #                 fw.run(1100)
-
-    #             # if fw.angle() >= 0:
-    #             #     bw.run(100)
-    #             #     fw.run(-1100)
-        
-    #         run = run + 1
-    #         direction = 1  
-    #         fw.stop()  
-
-        
-    elif color == 1: # orange
-        if direction == 0 or direction == 1: # no direction or clockwise
-            while fw.angle() <= 500 :
+            while distance < 50:
                 ev3.speaker.beep()
-                bw.stop()
-                fw.run(1100)
+                status, data = st.call('cam')
+                balance, BRB, distance, MGbalance, pik, Bpik,balance2,BRC = data
+                bw.run(-400)
+        else:
+            turnAngle(650, 7.5, BRB)
+            setBWSpeedRB(100, 500, BRB)
+            sensedBlock = 1
+        
+    # elif (color == 1 and distance == 0) or colorPriority:  # orange detected and no distance
+    elif color == 1 or colorPriority:  # orange detected and no distance
+        ev3.speaker.beep()
+        
+        # print("time elapsed: " + str(timer.time()))
+       
+        # if curr_time == 0:
+        #     prev_time = -9999
+        # else:
+        #     prev_time = curr_time
+        
+        # curr_time = timer.time()
+        # time_elapsed = curr_time - prev_time
 
-            # if fw.angle() >= 500:
-            #     bw.run(-100)
-          
-            run = run + 1
-            direction = 1  
-            # fw.stop()  
-
-    # elif rgb_to_color(sensor.rgb()) == -1: # blue
-    #     if direction == 0 or direction == -1: # no direction or counter-clockwise
-    #         if BRB == 0:
-    #             while fw.angle() >= -800:
-    #                 # ev3.speaker.beep()
-    #                 bw.run(300)
-    #                 fw.run(-1100)  
-
-    #         run = run + 1
-    #         direction = -1
-
-    #         fw.stop()
-
-    elif color == -1: # orange
-        if direction == 0 or direction == -1: # no direction or clockwise
-            while fw.angle() >= -500 :
-                ev3.speaker.beep()
-                bw.stop()
-                fw.run(-1100)
-
-            # if fw.angle() >= 500:
-            #     bw.run(-100)
-          
-            run = run + 1
-            direction = 1  
-            # fw.stop()  
-    
-    else:
-        # ev3.speaker.beep()
-        setBWSpeed(100, 400, balance)
-        turnAngle3(50, 10, balance)
-
-    
-
-    # if direction == -1: ####### If it's counter-clockwise, the robot will only activate the Left side of the Ultrasonic Sensor for it to go away from the inner wall
-    #     if Lultra_distance < 300 and Lultra_distance > 30:
-    #         ev3.speaker.beep()
-    #         PIDultraL(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400)  
-
-    # if direction == 1: ####### If it's clockwise, the robot will only activate the Right side of the  Ultrasonic Sensor for it to go away from the inner wall
-    #     if Rultra_distance < 300 and Rultra_distance > 30:        
-    #         ev3.speaker.beep()
-    #         PIDultraR(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400) 
-
-    # if direction == 0: ####### From the very start, we don't know which direction the robot will drive, so activate both sides of the Ultrasonic Sensor for it to go away from the inner wall
-    #     if Lultra_distance < 250 and Lultra_distance > 30:
-    #         ev3.speaker.beep()
-    #         PIDultraL(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400)  
-
-    #     if Rultra_distance < 250 and Rultra_distance > 30:        
-    #         ev3.speaker.beep()
-    #         PIDultraR(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400)  
-
-    #     run = 0
-    
-##########################    
-    # elif BRB == 0 and sensedBlock == 1:
-    #     sensedBlock = 0
-
-    # if balance >= 850 or balance <= -850:
+        # if time_elapsed < 10000:
+        #     ignore = True
+        # else:
+        #     run += 1
+        #     ignore = False
 
 
-    # fw.stop()
-    # elif rgb_to_color(sensor.rgb()) == 0 and sensedBlock == 0: 
+        if direction == 0 or direction == 1 and not ignore:  # no direction or clockwise
+            colorPriority = 0
+            direction = 1
 
-    #     if fw.angle() > 0:           
-    #         ev3.speaker.beep()
-    #         while fw.angle() > 0 and rgb_to_color(sensor.rgb()) != 0:
-    #             fw.run(-500)
-    #             bw.run(500)
+            fw.stop()
+            bw.run_angle(1100, 850)
+            backToZeroSteering(0, 1000, 0, steering=0)  # zero parameter means we dont care about the color
             
-    #         fw.stop()
-    #         bw.reset_angle(0)
-    #         bw.run_target(500, 360, wait=False)
-    #         bw.run(200)
-    #         # wait(5000)
+            # while fw.angle() >= 50 or fw.angle() <= -50:
+            #     if fw.angle() > 0:
+            #         bw.stop()
+            #         fw.run(-1100)
+            #     elif fw.angle() < 0:
+            #         bw.stop()
+            #         fw.run(1100)
 
-    #     else:
-    #         ev3.speaker.beep()
-    #         while fw.angle() < 0 and rgb_to_color(sensor.rgb()) != 0:
-    #             fw.run(500)
-    #             bw.run(500)
+            # fw.stop()
+
+            while distance == 0:
+                status, data = st.call('cam')
+                balance, BRB, distance, MGbalance, pik, Bpik,balance2,BRC = data
+                if fw.angle() > max_turnL:
+                    fw.run(-1100)
+                    bw.run(-300)                    
+                else:
+                    fw.run(-1100)
+            else:
+                bw.reset_angle(0)
+                bw.run_angle(-300, 200)
+
+            # bw.stop()
+            # fw.stop()
+            
+            # while fw.angle() >= 100 or fw.angle() <= -100:
+            #     if fw.angle() > 0:
+            #         bw.stop()
+            #         fw.run(-1100)
+
+            #     elif fw.angle() < 0:
+            #         bw.stop()
+            #         fw.run(1100)
+                
+            
+            # fw.stop()
+
+            # if BRC < 0:  # green = -1
+            #     # Turn backward to -350 degrees
+            #     while fw.angle() > -200:
+            #         # ev3.speaker.beep()
+            #         fw.run(-1100)
+            #         bw.run(50)
+            #     fw.stop()
+            #     bw.stop()
+
+            #     # backToZeroSteering(200, 1000, 0)  # zero parameter means we dont care about the color
+
+
+            # else:  # red = 1
+            #     # Turn forward to 350 degrees
+            #     while fw.angle() < 200:
+            #         # ev3.speaker.beep()
+            #         fw.run(1100)
+            #         bw.run(50)
+            #     fw.stop()
+            #     bw.stop()
+
+            backToZeroSteering(0, 1000, 0, steering=0) 
+            wait(500) 
+            # bw.run(300)
+
         
-    #         fw.stop()
-    #         bw.stop()
-    #         bw.reset_angle(0)
-    #         bw.run_target(500, 360, wait=False)
-    #         bw.run(200)
-    #         # wait(5000)
+    # elif (color == -1 and distance == 0) or colorPriority:  # blue detected and no distance
+    elif color == -1 or colorPriority:  # blue detected
+        # print("time elapsed: " + str(timer.time()))
+        if direction == 0 or direction == -1:  # no direction or clockwise
+            colorPriority = 0
+            direction = -1
+            bw.run_angle(1100, 550)
 
-        
-        
-    #     sensedBlock = 2
+            while fw.angle() >= 50 or fw.angle() <= -50:
+                if fw.angle() > 0:
+                    bw.stop()
+                    fw.run(-1100)
+                elif fw.angle() < 0:
+                    bw.stop()
+                    fw.run(1100)
 
-    # # elif fw.angle() !=0:
-    # #     if BRB == 0 :
-    # #         while fw.angle() > 50:
-    # #             fw.run(-1100)
-    # #             bw.run(200)
+            # fw.stop()
 
-    # #         while fw.angle() < -50:
-    # #             fw.run(1100)
-    # #             bw.run(200)
+            while distance == 0:
+                status, data = st.call('cam')
+                balance, BRB, distance, MGbalance, pik, Bpik, balance2, BRC = data
+                if fw.angle() < max_turnR:
+                    bw.run(-400)
+                    fw.run(1100)
+                else:
+                    fw.run(1100)
+            else:
+                bw.reset_angle(0)
+                bw.run_angle(-400, 150)
 
-    # # fw.stop()
-#################################        
+            # bw.stop()
+            # fw.stop()
+            
+            while fw.angle() >= 100 or fw.angle() <= -100:
+                if fw.angle() > 0:
+                    bw.stop()
+                    fw.run(-1100)
 
-while run > 8 and run < 12:
-    if turn == 0:
-        fw.run_target(1100, 800)
-        wait(100)
-        bw.run_target(500, 300)
-        wait(100)
-        fw.run_target(1100, -1000)
-        wait(100)
-        bw.run_target(500, -300)
-        wait(100)
-        fw.run_target(1100, 1000)
-        wait(100)
-        bw.run_target(500, 200)
-        wait(100)
-        fw.run_target(1100, -500)
-        wait(100)
-        turn = 2
-        direction = direction * -1
+                elif fw.angle() < 0:
+                    bw.stop()
+                    fw.run(1100)
+                
+            bw.run(200)
+            fw.stop()
 
-#############
-    elif BRB != 0:
+            if BRC < 0:
+                # Turn backward to -350 degrees
+                while fw.angle() > -200:
+                    # ev3.speaker.beep()
+                    fw.run(-1100)
+                    bw.run(50)
+                fw.stop()
+                bw.stop()
+            else:
+                # Turn forward to 350 degrees
+                while fw.angle() < 200:
+                    # ev3.speaker.beep()
+                    fw.run(1100)
+                    bw.run(50)
+                fw.stop()
+                bw.stop()
+
+        # if timer.time() - pretimer < 50000:
+        #     run = run + 1 
+
+        # pretimer = timer.time()
+     
+    elif abs(fw.angle()) > 200 and ((distance == 0 and prev_distance == 0) or (prev_distance - distance < 0)) and sensedBlock == 1:
         # ev3.speaker.beep()
-        turnAngle(1000, 0, BRB)
-        setBWSpeedRB(300, 400, BRB)
-        sensedBlock = 1
 
-
-    # elif balance != 0 and BRB == 0:
-    #     # ev3.speaker.beep()
-    #     setBWSpeed(100, 400, balance)
-    #     turnAngle3(50, 10, balance)
+        colorPriority = backToZeroSteering(250, 1000, color, steering=0)
+        sensedBlock = 0
     
     
-    # elif rgb_to_color(sensor.rgb()) == 1: # orange
-    #     if direction == 0 or direction == 1: # no direction or clockwise
-    #         if BRB == 0:
-    #             while fw.angle() <= 900 and BRB == 0:
-    #                 bw.run(300)
-    #                 # ev3.speaker.beep()
-    #                 fw.run(1100)
+    elif abs(fw.angle()) > 200 and Bpik - prev_Bpik < 0 and Bpik <= 20 and Bpik > 0 and offTheWall == 1:
+        # ev3.speaker.beep()
+        if balance > 0:
+            colorPriority = backToZeroSteering(250, 1000, color, steering=100)
+        elif balance < 0:
+            colorPriority = backToZeroSteering(250, 1000, color, steering=-100)
+        else:
+            colorPriority = backToZeroSteering(250, 1000, color, steering=0)
 
-    #             # if fw.angle() >= 0:
-    #             #     bw.run(100)
-    #             #     fw.run(-1100)
+        offTheWall = 0
+    
+    elif Lultra_distance <= 150 and BRB == 0.0 and direction == 1 and Bpik >= 20:
+        ev3.speaker.beep()
+        bw.stop()
+
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            fw.run(-1100)
+
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            fw.run(1100)
+
+        while distance == 0:
+            status, data = st.call('cam')
+            balance, BRB, distance, MGbalance, pik,Bpik,balance2,BRC = data
+            fw.run(-1100)
+            bw.run(-300)
+
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(-1100)
+
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(1100)
         
-    #         run = run + 1
-    #         direction = 1  
-    #         fw.stop()  
+    elif Rultra_distance <= 150 and BRB == 0.0 and direction == 1 and Bpik >= 20:
+        ev3.speaker.beep()
+        bw.stop()
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(-1100)
 
-        
-    elif color == 1: # orange
-        if direction == 0 or direction == 1: # no direction or clockwise
-            while fw.angle() <= 500 :
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(1100)
+
+        while distance == 0:
+            status, data = st.call('cam')
+            balance, BRB, distance, MGbalance, pik,Bpik,balance2,BRC= data
+            fw.run(-1100)
+            bw.run(-300)
+
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            # wait(100)
+            fw.run(-1100)
+
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            # wait(100)
+            fw.run(1100)
+
+        if BRB < 0:
+            # Turn backward to -350 degrees
+            while fw.angle() > -200:
                 ev3.speaker.beep()
-                bw.stop()
-                fw.run(1100)
-
-            # if fw.angle() >= 500:
-            #     bw.run(-100)
-          
-            run = run + 1
-            direction = 1  
-            # fw.stop()  
-
-    # elif rgb_to_color(sensor.rgb()) == -1: # blue
-    #     if direction == 0 or direction == -1: # no direction or counter-clockwise
-    #         if BRB == 0:
-    #             while fw.angle() >= -800:
-    #                 # ev3.speaker.beep()
-    #                 bw.run(300)
-    #                 fw.run(-1100)  
-
-    #         run = run + 1
-    #         direction = -1
-
-    #         fw.stop()
-
-    elif color == -1: # orange
-        if direction == 0 or direction == -1: # no direction or clockwise
-            while fw.angle() >= -500 :
-                ev3.speaker.beep()
-                bw.stop()
                 fw.run(-1100)
+                bw.run(50)
+            fw.stop()
+            bw.stop()
+        else:
+            # Turn forward to 350 degrees
+            while fw.angle() < 200:
+                ev3.speaker.beep()
+                fw.run(1100)
+                bw.run(50)
+            fw.stop()
+            bw.stop()            
+        
+    elif Lultra_distance <= 150 and BRB == 0.0 and direction == -1 and Bpik >= 20:
+        ev3.speaker.beep()
+        bw.stop()
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(-1100)
 
-            # if fw.angle() >= 500:
-            #     bw.run(-100)
-          
-            run = run + 1
-            direction = 1  
-            # fw.stop()  
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(1100)
+
+        while distance == 0:
+            status, data = st.call('cam')
+            balance, BRB, distance, MGbalance, pik,Bpik,balance2,BRC= data
+            fw.run(1100)
+            bw.run(-300)
+
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(-1100)
+
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(1100)
+
+        if BRB < 0:
+            # Turn backward to -350 degrees
+            while fw.angle() > -200:
+                ev3.speaker.beep()
+                fw.run(-1100)
+                bw.run(50)
+            fw.stop()
+            bw.stop()
+        else:
+            # Turn forward to 350 degrees
+            while fw.angle() < 200:
+                ev3.speaker.beep()
+                fw.run(1100)
+                bw.run(50)
+            fw.stop()
+            bw.stop()            
+        
+    elif Rultra_distance <= 150 and BRB == 0.0 and direction == -1 and Bpik >= 20:
+        ev3.speaker.beep()
+        bw.stop()
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(-1100)
+
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(1100)
+
+        while distance == 0:
+            status, data = st.call('cam')
+            balance, BRB, distance, MGbalance, pik,Bpik,balance2,BRC = data
+            fw.run(1100)
+            bw.run(-300)
+
+        while fw.angle() >= 100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(-1100)
+
+        while fw.angle() <= -100:
+            ev3.speaker.beep()
+            bw.stop()
+            wait(100)
+            fw.run(1100)
+
+        if BRB < 0:
+            # Turn backward to -350 degrees
+            while fw.angle() > -200:
+                ev3.speaker.beep()
+                fw.run(-1100)
+                bw.run(50)
+            fw.stop()
+            bw.stop()
+        else:
+            # Turn forward to 350 degrees
+            while fw.angle() < 200:
+                ev3.speaker.beep()
+                fw.run(1100)
+                bw.run(50)
+            fw.stop()
+            bw.stop()
+
+    elif BRB == 1100:
+        bw.run_angle(-1100,200)
+
+    elif BRB == -1100:
+        bw.run_angle(-1100,200)
     
     else:
-        # ev3.speaker.beep()
-        setBWSpeed(100, 400, balance)
-        turnAngle3(50, 10, balance)
+        setBWSpeed(100, 500, balance)
+        turnAngle3(10, 2.25, balance) 
+        offTheWall = 1
+    
+    
+    
+    prev_distance = distance
+    prev_Bpik = Bpik
+
+
+
+
+
+            
 
     
 
-    # if direction == -1: ####### If it's counter-clockwise, the robot will only activate the Left side of the Ultrasonic Sensor for it to go away from the inner wall
-    #     if Lultra_distance < 300 and Lultra_distance > 30:
-    #         ev3.speaker.beep()
-    #         PIDultraL(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400)  
-
-    # if direction == 1: ####### If it's clockwise, the robot will only activate the Right side of the  Ultrasonic Sensor for it to go away from the inner wall
-    #     if Rultra_distance < 300 and Rultra_distance > 30:        
-    #         ev3.speaker.beep()
-    #         PIDultraR(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400) 
-
-    # if direction == 0: ####### From the very start, we don't know which direction the robot will drive, so activate both sides of the Ultrasonic Sensor for it to go away from the inner wall
-    #     if Lultra_distance < 250 and Lultra_distance > 30:
-    #         ev3.speaker.beep()
-    #         PIDultraL(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400)  
-
-    #     if Rultra_distance < 250 and Rultra_distance > 30:        
-    #         ev3.speaker.beep()
-    #         PIDultraR(10, 80, 0.001, 200, 300, 250)
-    #         bw.run(400)  
-
-    #     run = 0
 
 
-
-
-
-
-
-
-
-        
-
-  
