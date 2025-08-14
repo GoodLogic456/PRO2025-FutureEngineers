@@ -13,7 +13,7 @@ This repository contains engineering materials of a self-driven vehicle's model.
 
 # 🛑 MOBILITY MANAGEMENT 🛑
 ## Motor and Steering System
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/f1fe00ac-55de-432c-b491-ec82b08ee9db">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera** and two **(2) Lego EV3 ultrasonic sensors**. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/da1f7ea8-02c0-4a99-b11e-f5ee9c429ad7">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera** and two **(2) Lego EV3 ultrasonic sensors**. 
 
 The robot uses **Proportional-Derivative** control to make steering more accurate. This system helps the robot align its actual turning angle with the desired angle calculated from camera feedback. The difference between the actual turning angle and the computed desired angle is the error. The goal then is to drive this error to zero (or near zero). This is achieved by compensating for the error in the function `turnAngle2()`.
 
@@ -49,8 +49,9 @@ def turnAngle2(kp, kd, balance):
    
     fw.run(fwspeed)
 ```
+
 ## Wheel and Motor Selection for Stability
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/d57f52f2-d22a-41c6-8709-94eb0e3f3ed6">The motors were picked because they are strong, reliable, and have enough turning power (torque) to move the robot smoothly on the track. The robot also uses hard wheels with flat edges in both the front and back. This design gives the robot better grip and control when turning. Since the wheels are the same size and shape, the robot stays level, which helps the color sensor stay flat so it can read the floor properly. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/4d7e9bac-02fc-4d3b-9a42-662e360fbae3">The motors were picked because they are strong, reliable, and have enough turning power (torque) to move the robot smoothly on the track. The robot also uses hard wheels with flat edges in both the front and back. This design gives the robot better grip and control when turning. Since the wheels are the same size and shape, the robot stays level, which helps the color sensor stay flat so it can read the floor properly. 
 
 
 ## Chassis Build and Balance
@@ -69,7 +70,7 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 | EV3 Intelligent Brick     | 1          |
 | EV3 Large Motor           | 1          |
 | EV3 Medium Motor          | 1          |
-| Time of Flight Sensor     | 1          |
+| Time-of-Flight Sensor     | 1          |
 | Color Sensors             | 2          |
 | OpenMV H7 Plus Camera     | 1          |
 | Wide Angle Lens		    | 1          |
@@ -78,19 +79,20 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 | Cables                    | 6          |
 
 ## Power Supply
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/100d7292-a1b9-4c19-88a0-c4be4693d1b6">The robot is powered by a rechargeable EV3 battery pack. This battery gives steady and long-lasting power to the EV3 brick, motors, and LEGO sensors. It was chosen instead of AA batteries because it gives more consistent power, is easy to recharge, and helps avoid stopping often during testing or competitions. The EV3 brick works like the robot’s power and control center. It controls how electricity is shared with the motors and sensors.
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/e38cd337-aa66-42fe-b2eb-afc074b24a00">The robot is powered by a rechargeable EV3 battery pack. This battery gives steady and long-lasting power to the EV3 brick, motors, and LEGO sensors. It was chosen instead of AA batteries because it gives more consistent power, is easy to recharge, and helps avoid stopping often during testing or competitions. The EV3 brick works like the robot’s power and control center. It controls how electricity is shared with the motors and sensors.
 
 ## Sensor Setup
 To help the robot understand its surroundings, it uses different sensors. 
 
-### Ultrasonic Sensor
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/e19fb035-aa6b-420b-b1a8-0ac10d51db6c">There are two ultrasonic sensors located on the left and right of the robot. These sensors use sound waves to measure how close the robot is to walls or obstacles. This helps the robot stay in the middle of the path and avoid hitting anything.
+### Time-of-Flight Sensor
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/6f4eb5e6-16e8-49a5-afc4-1644056fd011">The Time-of-Flight (ToF) sensor mounted at the front of the robot helps measure the distance to objects ahead. It allows the robot to detect obstacles and avoid collisions. This sensor helps the car make smart decisions while driving, such as choosing safe paths and stopping when needed.
 
 ### Color Sensor
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/69e7000d-ab9b-4903-9afd-d118d461ae51">There is also a color sensor facing the ground. It can see colors like blue, orange, or white on the floor. The robot uses this to detect lines at corners to spot corners, and know when to turn. This is also used to determine the direction of movement of the robot whether clockwise or counter-clockwise. 
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/e83a7cca-7d2d-4a16-84a6-e3c7736ddcd7">There is also a color sensor facing the ground. It can see colors like blue, orange, or white on the floor. The robot uses this to detect lines at corners to spot corners, and know when to turn. This is also used to determine the direction of movement of the robot whether clockwise or counter-clockwise. 
+
 
 ### Camera and Communication
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/33963225-7188-40be-bf5c-0406b33ba5ad">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera is connected using an OFDL breakout board (https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/models), which makes it easier to attach to the EV3 brick. More information about the board can be found at: [https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff](https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff). The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/67e23bfb-b31c-4e05-ad8a-e58067cbd020">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera is connected using an OFDL breakout board (https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/models), which makes it easier to attach to the EV3 brick. More information about the board can be found at: [https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff](https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff). The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
 
 
 <img align="center" src="https://github.com/user-attachments/assets/e2d0fb48-4ba0-4395-8dbb-bed20a0102cb">
