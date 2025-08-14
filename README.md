@@ -1,5 +1,5 @@
 ### Introduction
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/f133dc92-9622-44ed-b9c5-4ef0885c1dcc">
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/7c3d89d2-e110-4c5e-98c3-12fdca61b5a3">
 
 This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **PRO Future Engineers 2025**
 
@@ -9,8 +9,6 @@ This repository contains engineering materials of a self-driven vehicle's model.
 - [Mobility Management](#-Mobility-Management-)
 - [Power and Sense Management](#-Power-and-Sense-Management-)
 - [Obstacle Management](#-obstacle-management-)
-
-
 
 
 # 🛑 MOBILITY MANAGEMENT 🛑
@@ -71,9 +69,10 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 | EV3 Intelligent Brick     | 1          |
 | EV3 Large Motor           | 1          |
 | EV3 Medium Motor          | 1          |
-| Ultrasonic Sensors        | 2          |
+| Time of Flight Sensor     | 1          |
 | Color Sensors             | 2          |
 | OpenMV H7 Plus Camera     | 1          |
+| Wide Angle Lens		    | 1          |
 | OFDL Breakout Board       | 1          |
 | Chassis (LEGO Parts)      | Assorted   |
 | Cables                    | 6          |
