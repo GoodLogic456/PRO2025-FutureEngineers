@@ -4,11 +4,8 @@ This repository contains the core components for a robotics vision and control s
 #### `cameraMain`
 Handles camera initialization and frame acquisition. This module sets up the camera stream and feeds live visuals into the processing pipeline, serving as the foundation for visual tasks such as block detection and white balance adjustment.
 
-#### `detectBlocks`
-Implements block detection using image processing techniques. It analyzes frames from the camera to identify and locate colored or shaped blocks, which are then used to guide the robot’s decision-making process.
+#### `robot-obstacle-challenge`
+Helps the robot move safely through areas with obstacles. It reads data from camera and sensors to find objects in the way, then chooses a path to avoid them. This module makes sure the robot can drive smoothly without crashing during the Obstacle Challenge.
 
-#### `main`
-Controls the EV3 robot’s motors and sensors. This script acts as the robot’s command center, interpreting input from the vision system and executing movement logic based on the detected blocks and environment conditions.
-
-#### `whiteBalance`
-Applies white balance correction to camera images. This module ensures color consistency under varying lighting conditions, improving the accuracy of visual processing tasks like block recognition.
+#### `robot-open-challenge`
+Controls the robot’s main tasks and movements. It starts up the motors, sensors, and camera, then decides what the robot should do based on what it sees and senses. This module helps the robot make 3 laps during the Open Challenge.
