@@ -13,41 +13,70 @@ This repository contains engineering materials of a self-driven vehicle's model.
 
 # 🛑 MOBILITY MANAGEMENT 🛑
 ## Motor and Steering System
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/da1f7ea8-02c0-4a99-b11e-f5ee9c429ad7">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera** and two **(2) Lego EV3 ultrasonic sensors**. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/da1f7ea8-02c0-4a99-b11e-f5ee9c429ad7">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera**, **Time-of-Flight sensor**, **color sensor**,  and  **gyro sensor**. 
 
-The robot uses **Proportional-Derivative** control to make steering more accurate. This system helps the robot align its actual turning angle with the desired angle calculated from camera feedback. The difference between the actual turning angle and the computed desired angle is the error. The goal then is to drive this error to zero (or near zero). This is achieved by compensating for the error in the function `turnAngle2()`.
+The robot uses **Proportional-Derivative** control to make steering more accurate. By continuously calculating the error  `balance`  and its rate of change `d_error` , the robot adjusts its steering angle using a control signal derived from the proportional  `kp`  and derivative  `kd`  gains. The front wheel motor  uses this signal to steer toward the correct heading, while the back wheel motor adjusts its speed to maintain smooth movement without overpowering the turn. The robot uses PD control to respond not only to how far off-center it is, but also to how quickly that error is changing, resulting in more precise and stable steering behavior.
+
 
 
 ```
-def turnAngle2(kp, kd, balance):
-    p = 0
-    d = 0
-    rot = 0
-    prev_error = 0
+def PID(kp, kd, balance):
 
-    mRot = fw.angle()   # current motor rotation
-   
-    if balance > 0:
-        rot = (max_turnR/1100) * balance
-    else:
-        rot = (max_turnL/-1100) * balance * 1.25    # *1.35
-        # *1.35
-   
-    print("mRot:" + str(mRot))
-    print("rot:" + str(rot))
-    print("balance:" + str(balance))
-   
-    error = mRot - rot
+    global prev_error, error
+    
 
-    p = -1.0 * kp * error
-    d = -1.0 * kd * (error - prev_error)  
-    fwspeed = int(p + d )
+    # Calculate the error
+    error = balance
+
+    # Calculate the derivative of the error
+    d_error = error - prev_error
+
+    # Calculate the control signal
+    control_signal = kp * error + kd * d_error
+
+    # Update previous error
     prev_error = error
-   
-    print("fwspeed:" + str(fwspeed))
-    print(" ")
-   
-    fw.run(fwspeed)
+
+    # Set motor speeds based on control signal
+    fwspeed = control_signal
+    # bwspeed = 100 - control_signal
+
+    # Limit motor speeds to max values
+    fwspeed = max(-1000, min(1000, fwspeed))
+    # bwspeed = max(-1000, min(1000, bwspeed))
+
+    if fwspeed > 0:
+        fwspeed = 1000
+    elif fwspeed < 0:
+        fwspeed = -1000
+    else:
+        fwspeed = 1
+    
+    # if control_signal == 0:
+    #     control_signal = 1
+
+    # print("Error:", left-right, "control_signal:", control_signal, " fwspeed:", fwspeed)
+
+    # Set motor speeds
+    control_signal = int(control_signal)
+
+    if control_signal > max_turnR:
+        control_signal = max_turnR
+    elif control_signal < max_turnL:
+        control_signal = max_turnL
+    
+    fw.run_target(fwspeed, control_signal, wait=False)
+
+    if control_signal > maxPower or control_signal < -maxPower:
+        control_signal = maxPower
+    
+    bwspeed = maxPower - abs(control_signal)
+    
+    if bwspeed < minPower:
+        bwspeed = minPower
+    
+    bw.run(bwspeed)
+    print(" bwspeed:", bwspeed ,"control_signal:", control_signal)
 ```
 
 ## Wheel and Motor Selection for Stability
@@ -491,28 +520,31 @@ The robot uses the color sensor to detect turn markers on the ground. If it sees
 The robot completes turns until it reaches a total of 12 turns, stored in the run variable. This usually represents 3 full laps with 4 turns each. Once the robot finishes its laps, it resets the back wheel angle to 0 and drives forward a short distance to simulate parking or completing the course.
 
 ```
-while run <= 11:
+def mainThread():
     ...
-    if rgb_to_color(sensor.rgb()) == 1: # orange
-        if direction == 0 or direction == 1: # no direction or clockwise
-            ...
-            run = run + 1
-            direction = 1
-    if rgb_to_color(sensor.rgb()) == -1: # blue
-        if direction == 0 or direction == -1: # no direction or counter-clockwise
-		...
-            run = run + 1
-            direction = -1
-    ...
-    if direction == 0:
+    while run <= 11:
         ...
-        run = 0
-if run > 11:
-   ...
-    run = 20
-if run ==20:
-    fw.stop()
-    bw.stop()
+        if color == 1 and (direction == 0 or direction == 1):
+            ...
+
+        elif color == -1 and (direction == 0 or direction == -1):
+            ...
+        
+        ...
+    else:
+        ...
+
+def intersectionCount():
+    global run
+    while run <= 11:
+        # print("Run:", run)
+        color = rgb_to_color(sensor.rgb())
+        if color == 1:
+            run += 1
+            wait(2000)
+
+threading.Thread(target=intersectionCount).start()
+mainThread()
 ```
 
 The robot combines camera input, color detection, ultrasonic distance sensing, and precise motor control to navigate an obstacle-filled track. It automatically detects when to turn, avoids walls, and stays centered. By combining PD and PID control with color-based behaviors, it can complete the course smoothly and reliably.
