@@ -138,7 +138,7 @@ The OpenMV H7 Plus camera processes images by first dividing the screen into two
 </table>
 <table>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/d1e8b70d-0028-4d21-b5c9-87ce42477607"/></td>
+    <td><img src="https://github.com/user-attachments/assets/c75763e1-6a68-4be9-9aae-cef8e4c6a37f"/></td>
   </tr>
 </table>
 
@@ -184,6 +184,7 @@ In the final step, the camera sends the `black_balance` value, the `error`, and 
 
 ## Black Area Detection for Wall
 To help the robot stay centered on the track or avoid walls, the camera checks how much black is seen on the left and right sides of the image. It uses a defined threshold to find black blobs and calculates a **"white balance"** value based on the difference in black pixel count between the two sides. 
+![detect-black-wall](https://github.com/user-attachments/assets/9bbf9c6a-a324-4d3f-905e-7f5882d23243)
 
 If one side has more black than the other, the robot can adjust its path to stay in the middle or prepare for a turn. The robot avoids hitting walls by checking how much black it sees on the left and right sides of the camera view. This is done in the `check_color_balance()` function:
 
