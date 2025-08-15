@@ -1,5 +1,5 @@
 ### Introduction
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/7c3d89d2-e110-4c5e-98c3-12fdca61b5a3">
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/a881d5a4-3cb7-4174-ad33-f6f3b2d881e3">
 
 This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **PRO Future Engineers 2025**
 
@@ -72,6 +72,7 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 | EV3 Medium Motor          | 1          |
 | Time-of-Flight Sensor     | 1          |
 | Color Sensors             | 2          |
+| Gyro Sensor               | 1          |
 | OpenMV H7 Plus Camera     | 1          |
 | Wide Angle Lens		    | 1          |
 | Chassis (LEGO Parts)      | Assorted   |
@@ -89,6 +90,8 @@ To help the robot understand its surroundings, it uses different sensors.
 ### Color Sensor
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/e83a7cca-7d2d-4a16-84a6-e3c7736ddcd7">There is also a color sensor facing the ground. It can see colors like blue, orange, or white on the floor. The robot uses this to detect lines at corners to spot corners, and know when to turn. This is also used to determine the direction of movement of the robot whether clockwise or counter-clockwise. 
 
+### Gyro Sensor
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/840c8dde-032e-4abe-a448-1e89d2b7d838">The gyro sensor enables the robot to determine its precise orientation and measure the degree of its rotation. This capability is crucial for parking, as the vehicle must align accurately with the designated spot. By providing real-time feedback, the gyro sensor enhances the robot’s ability to park with improved accuracy and consistency.
 
 ### Camera and Communication
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/67e23bfb-b31c-4e05-ad8a-e58067cbd020">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
@@ -128,8 +131,6 @@ If the robot’s center is off from the desired direction, the system calculates
 All the parts, including motors, sensors, camera, and EV3 brick, are placed carefully to keep the robot balanced and steady. The robot uses two motors: a medium motor in front for steering, and a large motor at the back for driving. These motors are strong and reliable, letting the robot move forward, backward, and turn smoothly even when it’s carrying extra weight like the camera and sensors.
 
 ## 💡 <mark> How to Improve Power and Sense Management</mark>
-One way to improve the robot’s power and sense management is by **adding a gyro sensor**. A gyro sensor measures how much the robot turns or rotates. This helps the robot stay on a straight path, even if the wheels slip or the floor is not even. It also makes turning more accurate and consistent, especially in tight spaces or when following a planned path. With better control of its direction, the robot doesn't waste power fixing its movement and can finish its tasks more smoothly and steadily. Adding a gyro sensor helps the robot move more correctly and stay balanced.
-
 **Moving the camera farther back** on the robot can improve both power and sense management. When the camera is placed farther from the front, it can see a wider area of the path ahead, including more of the walls and obstacles on both sides. This gives the robot more time to react, reducing the need for sudden turns or quick power changes that waste energy. With more visual information, the robot can plan smoother movements, making driving more efficient and helping it avoid sharp corrections. This improves overall control while saving power and making obstacle detection more reliable.
 
 
