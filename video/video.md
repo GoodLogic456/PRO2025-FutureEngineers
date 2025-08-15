@@ -14,10 +14,10 @@
 <h1 align="center">🛑 OBSTACLE CHALLENGE 🛑</h1>
 
 <div align="center">
-  <a href="https://youtu.be/lfYiV9w-Xnc">
-    <img src="https://github.com/user-attachments/assets/4ab6bc85-5d56-4461-a48d-413e835f8690" alt="PRO 2025 Future Engineers Obstacle Challenge" width="400" style="height:auto;" />
+  <a href="https://youtu.be/bDLlnoBHi80">
+    <img src="https://github.com/user-attachments/assets/0031fcea-e904-4373-a59a-e11456a83d26" alt="PRO 2025 Future Engineers Obstacle Challenge" width="400" style="height:auto;" />
   </a>
 
-**Obstacle Challenge:**  [https://youtu.be/lfYiV9w-Xnc](https://youtu.be/lfYiV9w-Xnc)
+**Obstacle Challenge:**  [https://youtu.be/bDLlnoBHi80](https://youtu.be/bDLlnoBHi80)
 </div>
 
