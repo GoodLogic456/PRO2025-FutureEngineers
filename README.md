@@ -519,7 +519,7 @@ threading.Thread(target=intersectionCount).start()
 mainThread()
 ```
 
-The robot combines camera input, color detection, ultrasonic distance sensing, and precise motor control to navigate an obstacle-filled track. It automatically detects when to turn, avoids walls, and stays centered. By combining PD and PID control with color-based behaviors, it can complete the course smoothly and reliably.
+The robot combines camera input, color detection, distance sensing, and precise motor control to navigate an obstacle-filled track. It automatically detects when to turn, avoids walls, and stays centered. By combining PD and PID control with color-based behaviors, it can complete the course smoothly and reliably.
 
 ## 💡 <mark> How to Improve Obstacle Management</mark>
 **Adding a backup behavior** can help the robot recover when it gets too close to an obstacle and cannot turn safely. If the detected block is very close (for example, when the distance is below a certain threshold), the robot can briefly reverse to create more space before trying to turn again. This extra room gives the front wheel more angle to steer and reduces the chance of hitting the obstacle. The backup motion should be short and slow to stay controlled, and it should only happen when needed. This behavior makes the robot more flexible and helps it continue moving even in tight spots or when the path is partially blocked.
