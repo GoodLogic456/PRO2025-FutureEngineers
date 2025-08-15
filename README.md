@@ -329,14 +329,17 @@ Once a block is detected, the camera calculates an "error" value by comparing th
 This gives the robot a point to aim for and the error tells how far it needs to turn left or right to face the target. Visual feedback, like circles and arrows, is drawn on the image for debugging and testing. This is done in the `target_point()` function:
 
 ```
-def target_point(img_debug,block,color,k):
+def target_point(img_debug,block,color,k,near,nearMulti):
     offset_scaler=int(k*(block.y()+block.h()))
+    if (block.y()+block.h())>near:offset_scaler=int(offset_scaler*nearMulti)
     if color=="red":offset_x=(block.x()+block.w())+offset_scaler#right side-offset
     if color=="green":offset_x=block.x()-offset_scaler#left side-offset
     draw_x=max(0,min(319,offset_x))
-    img_debug.draw_circle(draw_x,block.cy(),3,color=(0,255,255),fill=True)#target for cursor
+    img_debug.draw_circle(draw_x,block.cy(),3,color=(150,255,150),fill=True)#target for cursor
     img_debug.draw_arrow(img_center[0],img_center[1],draw_x,img_center[1],color=(0,0,255))
     error=offset_x-img_center[0]
+    if color=="red" and error<0:error=error/2
+    if color=="green" and error>0:error=error/2
     img_debug.draw_string(img_center[0]-30,img_center[1]-10,"Err: "+str(error),color=(255,255,255),scale=1)
     return error
 ```
