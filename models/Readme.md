@@ -1,3 +1,0 @@
-<h1 align="center">🛑 OFDL BREAKOUT BOARD 🛑</h1>
-
-<img align="left" width="100" height="auto" src="https://github.com/GoodLogic456/PRO2025-FutureEngineers/blob/main/models/ofdl-breakout-board.png"> The OpenMV H7 Plus camera is securely mounted on an OpenMV Adapter, which is specially designed to connect the camera to the EV3 system. This board, featured in the [EV3-OpenMV-Stuff GitHub repository](https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff), includes LEGO-compatible holes for easy attachment to LEGO bricks, making it ideal for robotics projects. It also simplifies wiring by aligning with the EV3 port layout, allowing smooth communication between the EV3 brick and the OpenMV camera. 
