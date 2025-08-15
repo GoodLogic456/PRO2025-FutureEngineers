@@ -74,7 +74,6 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 | Color Sensors             | 2          |
 | OpenMV H7 Plus Camera     | 1          |
 | Wide Angle Lens		    | 1          |
-| OFDL Breakout Board       | 1          |
 | Chassis (LEGO Parts)      | Assorted   |
 | Cables                    | 6          |
 
@@ -92,7 +91,7 @@ To help the robot understand its surroundings, it uses different sensors.
 
 
 ### Camera and Communication
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/67e23bfb-b31c-4e05-ad8a-e58067cbd020">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera is connected using an OFDL breakout board (https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/models), which makes it easier to attach to the EV3 brick. More information about the board can be found at: [https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff](https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff). The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/67e23bfb-b31c-4e05-ad8a-e58067cbd020">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
 
 
 <img align="center" src="https://github.com/user-attachments/assets/e2d0fb48-4ba0-4395-8dbb-bed20a0102cb">
@@ -523,5 +522,5 @@ The robot combines camera input, color detection, ultrasonic distance sensing, a
 # RESOURCES:
 - [EV3 Documentation](https://pybricks.com/ev3-micropython/)
 - [OpenMV Documentation](https://docs.openmv.io/)
-- [OFDL Breakout Board GitHub Repository](https://github.com/ofdl-robotics-tw/EV3-OpenMV-Stuff)
+
 
