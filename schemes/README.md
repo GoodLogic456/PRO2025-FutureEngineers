@@ -2,7 +2,8 @@
 
 <img width="1920" height="1080" alt="Schematic Wiring Diagram" src="https://github.com/GoodLogic456/PRO2025-FutureEngineers/blob/main/schemes/Schematic%20Wiring%20Diagram.png" />
 
-This is the schematic wiring diagram for a self-driving EV3 robot. It uses the EV3 brick as the main controller. A large motor at the back (Port B) moves the robot forward and backward, while a smaller motor in front (Port C) helps it turn using a gear rack. On the front, there's an OpenMV H7 Plus camera (Port S1) that looks ahead - helpful for spotting objects or following a path. On the sides, there are ultrasonic sensors: one on the left (Port S2) and one on the right (Port S4). These measure how close the robot is to walls or obstacles, helping it avoid bumps. There's also a color sensor (Port S3) that checks the ground to follow lines or detect corners. Together, these parts let the robot move, see, and make smart decisions while driving.
+This is the schematic wiring diagram for a self-driving EV3 robot. It uses the EV3 brick as the main controller. A **large motor** at the back (Port B) moves the robot forward and backward, while a **smaller motor** in front (Port C) helps it turn using a gear rack. On the front, there's an **OpenMV H7 Plus camera** (Port S1)  and **time-of-flight sensor** that look ahead - helpful for spotting objects or following a path. There's also a **color sensor** (Port S3) that checks the ground to follow lines or detect corners. A **gyro sensor** placed on top (Port S4) measures the robot’s turning angle and direction. Together, these parts let the robot move, see, and make smart decisions while driving.
+
 
 | **COMPONENT**              | **FUNCTION**                                                                 | **PORT**          |
 |---------------------------|------------------------------------------------------------------------------|-------------------|
