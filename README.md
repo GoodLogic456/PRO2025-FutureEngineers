@@ -252,26 +252,31 @@ The camera also looks for red and green blocks on the course by enhancing the im
 
 The robot uses color to find objects in front of it. This is done in `find_block()`:
 ```
-def find_block(img,img_debug):
+def find_block(img,img_debug,distance_cap):
     img_contrast=img.copy()
-    img_contrast.gamma_corr(gamma=1.9, contrast=1.1,brightness=-0.1)
+    #img_contrast.gamma_corr(gamma=1.5,contrast=1.0,brightness=0)
+    img_contrast=img_contrast.lens_corr(strength=1.53,x_corr=-0.04)#correct lens distortion
+    #img_contrast=img_contrast.lens_corr(strength=1.62,x_corr=-0.04)#correct lens distortion
+    img_contrast.gamma_corr(gamma=1.9,contrast=1.1,brightness=-0.1)
     color="None"
     blob=None
     nearestRed=None
     nearestGreen=None
     red_val=0
     green_val=0
+    blocks=0
     #thresholds in LAB format for color filtering
-    threshold_red=(0, 40, 5, 127, -10, 55)
-    threshold_green=(25, 51, -85, -21, -7, 73)
+    threshold_red=(0, 45, 23, 127, 5, 31)#(0, 32, 10, 127, 9, 127)#(0, 31, 10, 127, 9, 127)#(20, 45, 25, 40, 10, 127)#(0, 45, 25, 49, 13, 127)#(0, 46, 18, 49, 13, 127)#(0, 43, 9, 127, 4, 127)#(0, 35, 10, 127, -10, 127)#(0, 43, 10, 127, -12, 127)
+    threshold_green=(25, 50, -65, -25, 21, 79)#(20, 45, -40, -15, 4, 57)#(21, 43, -128, -19, 16, 127)#(0, 100, -56, -25, 17, 50)#(28, 46, -56, -25, 17, 50)#(20, 45, -40, -15, 4, 57)#(20, 54, -40, -17, 0, 57)#(0, 100, -98, -25, -10, 127)
     #detect blobs with minimum size; no merging to prevent combining distant blocks
-    red=img_contrast.find_blobs([threshold_red],pixels_threshold=100,merge=False)
-    green=img_contrast.find_blobs([threshold_green],pixels_threshold=100,merge=False)
-    if not red and not green:return {"color":"None","blob":None}
+    red=img_contrast.find_blobs([threshold_red],pixel_threshold=100,roi=img_roi,merge=True)
+    green=img_contrast.find_blobs([threshold_green],pixel_threshold=100,roi=img_roi,merge=True)
+    if not red and not green:return {"color":"None","blob":None,"blocks":blocks}
     if red:# evaluate all red blobs
         for b in red:
             img_debug.draw_rectangle(b.rect(),color=(255,0,0))
             val=b.y()+b.h()
+            if val>distance_cap:blocks+=1
             if val>red_val:# update nearest red
                 nearestRed=b
                 red_val=val
@@ -279,6 +284,7 @@ def find_block(img,img_debug):
         for b in green:
             img_debug.draw_rectangle(b.rect(),color=(0,255,0))
             val=b.y()+b.h()                            #(2*b.pixels())-b.area()
+            if val>distance_cap:blocks+=1
             if val>green_val:# update nearest green
                 nearestGreen=b
                 green_val=val
@@ -299,7 +305,7 @@ def find_block(img,img_debug):
     else:
         color="None"
         blob=None
-    return {"color":color,"blob":blob}#return blob info and color if found
+    return {"color":color,"blob":blob,"blocks":blocks}#return blob info and color if found
 ```
 - It checks for red and green blocks using color filters.
 - It picks the block closest to the bottom of the image because that one is nearest:
