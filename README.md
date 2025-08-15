@@ -369,14 +369,10 @@ If the block is near the bottom of the image, it means the block is close to the
 ## Sending Data to the Robot
 
 ```
-from serialtalk.auto import SerialTalk
 st=SerialTalk()
-cam_data=[0,0,0]
+cam_data=[0,0,0,0,0,0,0]
 def cam():return cam_data# global cam_data
-st.add_command(cam, "repr")
-
-cam_data=[white_balance,error,distance]
-    print(cam_data)
+st.add_command(cam, "repr") cam_data=[white_balance,error,distance,blue,magenta_balance,tof.ping()-95,block_x]
     st.process()
 ```
 
@@ -427,38 +423,66 @@ This data is used by the robot to decide how to move, steer, or stop.
 
 
 ## Control Logic and Behavior
-The robot's main control loop reads sensor values and camera data, then decides how to move. If the camera sends a large left or right balance, the error is deemed large, thus the robot adjusts steering strongly to keep centered. It uses Proportional-Derivative (PD) control in the function `turnAngle2()` to match the steering motor angle with the desired direction from the camera. The robot continually computes for this error value and adjusts the front motor speed to reduce this error.
+The robot's main control loop reads sensor values and camera data, then decides how to move. If the camera sends a large left or right balance, the error is deemed large, thus the robot adjusts steering strongly to keep centered. It uses Proportional-Derivative (PD) control in the function `PID()` to match the steering motor angle with the desired direction from the camera. The robot continually computes for this error value and adjusts the front motor speed to reduce this error.
 
 ```
-def turnAngle2(kp, kd, balance):
-    p = 0
-    d = 0
-    rot = 0
-    prev_error = 0
+def PID(kp, kd, balance):
 
-    mRot = fw.angle()   # current motor rotation
-   
-    if balance > 0:
-        rot = (max_turnR/1100) * balance
-    else:
-        rot = (max_turnL/-1100) * balance * 1.25    # *1.35
-        # *1.35
-   
-    print("mRot:" + str(mRot))
-    print("rot:" + str(rot))
-    print("balance:" + str(balance))
-   
-    error = mRot - rot
+    global prev_error, error
+    
 
-    p = -1.0 * kp * error
-    d = -1.0 * kd * (error - prev_error)  
-    fwspeed = int(p + d )
+    # Calculate the error
+    error = balance
+
+    # Calculate the derivative of the error
+    d_error = error - prev_error
+
+    # Calculate the control signal
+    control_signal = kp * error + kd * d_error
+
+    # Update previous error
     prev_error = error
-   
-    print("fwspeed:" + str(fwspeed))
-    print(" ")
-   
-    fw.run(fwspeed)
+
+    # Set motor speeds based on control signal
+    fwspeed = control_signal
+    # bwspeed = 100 - control_signal
+
+    # Limit motor speeds to max values
+    fwspeed = max(-1000, min(1000, fwspeed))
+    # bwspeed = max(-1000, min(1000, bwspeed))
+
+    if fwspeed > 0:
+        fwspeed = 1000
+    elif fwspeed < 0:
+        fwspeed = -1000
+    else:
+        fwspeed = 1
+    
+    # if control_signal == 0:
+    #     control_signal = 1
+
+    # print("Error:", left-right, "control_signal:", control_signal, " fwspeed:", fwspeed)
+
+    # Set motor speeds
+    control_signal = int(control_signal)
+
+    if control_signal > max_turnR:
+        control_signal = max_turnR
+    elif control_signal < max_turnL:
+        control_signal = max_turnL
+    
+    fw.run_target(fwspeed, control_signal, wait=False)
+
+    if control_signal > maxPower or control_signal < -maxPower:
+        control_signal = maxPower
+    
+    bwspeed = maxPower - abs(control_signal)
+    
+    if bwspeed < minPower:
+        bwspeed = minPower
+    
+    bw.run(bwspeed)
+    print(" bwspeed:", bwspeed ,"control_signal:", control_signal)
 ```
 ## Wall Avoidance and PD Control
 If the robot gets too close to the left or right wall, it activates a PD control behavior using the `PIDultraL()` or `PIDultraR()` functions. These functions make the robot turn away from the wall smoothly and maintain a safe distance. The robot also adjusts its back motor speed using `setBWSpeed()`, which varies the speed based on how far it is to a wall.
