@@ -10,7 +10,7 @@
 |:--------------------------:|:--------------------------:|
 <h1 align="center">🛑 VEHICLE FULL ROTATION VIDEO 🛑</h1>
 <div align="center">
-  <a href="https://youtu.be/69r0Sl1IVfA">
+  <a href="https://youtu.be/MmKQNJerum8">
     <img src="https://github.com/user-attachments/assets/9ef66760-44ea-4371-a709-9a70d963a941" alt="EV3 Self-Driving Robot Car - Full Rotation Display" width="400" style="height:auto;" />
   </a>
 </div>
