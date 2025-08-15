@@ -189,24 +189,54 @@ If one side has more black than the other, the robot can adjust its path to stay
 
 ```
 def check_color_balance(img,img_debug,ROI_Y,ROI_H):
-    img_contrast=img.copy()
-    img_contrast.gamma_corr(gamma=1.3,contrast=2.2)
-    roi_left=(0,ROI_Y,img.width()//2,ROI_H)
-    roi_right=(img.width()//2,ROI_Y,img.width()//2,ROI_H)
+    #image filter to make find_blobs more accurate
+    img_contrast1=img.copy()
+    img_contrast1.gamma_corr(gamma=1.3,contrast=2.2)
+    img_contrast2=img.copy()
+    img_contrast2.gamma_corr(gamma=1.9, contrast=1.1,brightness=-0.1)#(gamma=2.0,contrast=1.5,brightness=-0.15)
+    MAGENTA_THRESH=(0, 100, 17, 64, -22, 6)#(46, 80, 25, 127, -30, 14)#(60, 100, 25, 127, -128, 10)#(0, 100, 19, 127, -34, 20)
     BLACK_THRESH=(0, 93, -128, 0, -7, 36)
-    Lblack_blobs=img_contrast.find_blobs([BLACK_THRESH],roi=roi_left,pixels_threshold=200)
-    Rblack_blobs=img_contrast.find_blobs([BLACK_THRESH],roi=roi_right,pixels_threshold=200)
-    Lblack_pixels=sum([b.pixels() for b in Lblack_blobs])
-    Rblack_pixels=sum([b.pixels() for b in Rblack_blobs])
+    #find black blobs
+    roi_leftP=(0,ROI_Y,img.width()//3,ROI_H)
+    roi_rightP=(2*(img.width()//3),ROI_Y,img.width()//3,ROI_H)
+    roi_leftH=(0,ROI_Y,img.width()//2,ROI_H)
+    roi_rightH=(img.width()//2,ROI_Y,img.width()//2,ROI_H)
+    Lblack_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=roi_leftP,pixels_threshold=200)#find left side black blobs
+    Rblack_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=roi_rightP,pixels_threshold=200)#find right side black blobs
+    Lblack_pixels=sum([b.pixels() for b in Lblack_blobs])#sum of black pixels that are located in the left ROI
+    Rblack_pixels=sum([b.pixels() for b in Rblack_blobs])#sum of black pixels that are located in the right ROI
+    Lmagenta_blobs=img_contrast2.find_blobs([MAGENTA_THRESH],roi=roi_leftH,pixels_threshold=400)#find left side magenta blobs
+    Rmagenta_blobs=img_contrast2.find_blobs([MAGENTA_THRESH],roi=roi_rightH,pixels_threshold=400)#find right side magenta blobs
+    Lmagenta_pixels=sum([b.pixels() for b in Lmagenta_blobs])#sum of magenta pixels that are located in the left ROI
+    Rmagenta_pixels=sum([b.pixels() for b in Rmagenta_blobs])#sum of magenta pixels that are located in the right ROI
+    BLUE_THRESH=(0, 57, -20, 10, -34, -11)#(0, 80, -128, 127, -128, -5)#(0, 100, -128, 127, -128, -11)
+    #(140,0,40,240)
+    blue_blobs=img_contrast2.find_blobs([BLUE_THRESH],pixels_threshold=10,roi=img_roi,merge=True)
+    blue=240-merged_y(blue_blobs)
+    #blackH_balance=99999
+    #wall_distance=99999
+    #LblackH_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=(0,40,img.width()//2,200),pixels_threshold=200,merge=True)#find left side black blobs
+    #RblackH_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=(img.width()//2,40,img.width()//2,200),pixels_threshold=200,merge=True)#find right side black blobs
+    #if len(LblackH_blobs)==1 and len(RblackH_blobs)==1:
+        #blackH_balance=(RblackH_blobs[0].y()+RblackH_blobs[0].h())-(LblackH_blobs[0].y()+LblackH_blobs[0].h())
+        #if abs(blackH_balance)<15:
+        #wall_distance=240-(((RblackH_blobs[0].y()+RblackH_blobs[0].h())+(LblackH_blobs[0].y()+LblackH_blobs[0].h()))/2)
     if True: #drawings for debugging
-        img_debug.draw_rectangle(roi_left,color=(255,0,0))#draw red box on left
-        img_debug.draw_rectangle(roi_right,color=(0,0,255))#draw blue box on right
+        img_debug.draw_rectangle(roi_leftP,color=(255,0,0))#draw red box on left
+        img_debug.draw_rectangle(roi_rightP,color=(0,0,255))#draw blue box on right
         for blob in Lblack_blobs:
-            img_debug.draw_rectangle(blob.rect(),color=(0,255,0))
+            img_debug.draw_rectangle(blob.rect(),color=(0,255,255))
         for blob in Rblack_blobs:
-            img_debug.draw_rectangle(blob.rect(),color=(0,255,0))
-    black_balance=max(-1100,min(1100,(Lblack_pixels-Rblack_pixels)/8))
-    return int(black_balance)
+            img_debug.draw_rectangle(blob.rect(),color=(0,255,255))
+        for blob in Lmagenta_blobs:
+            img_debug.draw_rectangle(blob.rect(),color=(255,100,255))
+        for blob in Rmagenta_blobs:
+            img_debug.draw_rectangle(blob.rect(),color=(255,100,255))
+        for blob in blue_blobs:
+            img_debug.draw_rectangle(blob.rect(),color=(0,0,255))
+    black_balance=Lblack_pixels-Rblack_pixels#max(-1100,min(1100,(Lblack_pixels-Rblack_pixels)/8))
+    magenta_balance=max(-1100,min(1100,(Lmagenta_pixels+Rmagenta_pixels)/12))
+    return int(black_balance),int(magenta_balance),int(blue)
 ```
 - If the left side has more black, the robot knows it is too close to the left wall and should move right, and vice versa.
 - This `black_balance` value helps the robot stay in the middle.
