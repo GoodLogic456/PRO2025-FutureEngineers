@@ -312,12 +312,51 @@ cam_data=[white_balance,error,distance]
     st.process()
 ```
 
-At the end of every frame, the camera sends three (3) important values to the EV3 brick using SerialTalk over UART communication. These values are measured from specific parts of the image called Regions of Interest (ROIs), which are focused areas the camera checks. The camera uses color thresholds, ROIs, and pixel thresholds in the `find_blobs()` function to detect walls and blocks. The three data values sent are as follows:
-1. **White balance** – difference in black pixel areas between left and right, helps the robot stay in the middle of the path
-2. **Error** – how far the target is from the center
-3. **Distance** – how close the detected block is
+At the end of every frame, the camera sends six (6) important values to the EV3 brick using SerialTalk over UART communication. These values are measured from specific parts of the image called Regions of Interest (ROIs), which are focused areas the camera checks. The camera uses color thresholds, ROIs, and pixel thresholds in the  find_blobs()  function to detect walls and blocks. The six data values sent are as follows:
+<br>
+<br>
+**1. White balance**
+- Comes from `check_color_balance()` → `black_balance = Lblack_pixels - Rblack_pixels`.
+- The difference in the total black pixels detected between the left and right regions of the image.
+- Positive → more black on the left side.
+- Negative → more black on the right side.
+- Used for general left/right centering against walls or black lines.
+
+**2. Error**
+- Computed by `target_point()` only if a red or green block is detected.
+- The horizontal offset from the image center to the adjusted “target point” on the detected block.
+- Positive → target is to the right of center.
+- Negative → target is to the left of center.
+- Small error means the block is already well-aligned.
+
+**3. Distance**
+- `240 - (block["blob"][1] + block["blob"][3])` → bottom of the detected block’s bounding box measured from image bottom.
+- Approximates how far the nearest red or green block is from the camera in pixels.
+- Smaller number → block is closer to the camera.
+- Larger number → block is farther away.
+
+**4. Blue**
+- From `blue = 240 - merged_y(blue_blobs)`.
+- Indicates the vertical position of the bottom of blue areas in the image.
+- Larger value → blue is higher up in the image (possibly farther away).
+- Smaller value → blue is lower in the image (possibly closer).
+
+**5. Magenta balance**
+- From `magenta_balance = max(-1100, min(1100, (Lmagenta_pixels - Rmagenta_pixels)/6))`.
+- The difference in magenta pixels between the left and right ROIs.
+- Positive → more magenta on left side.
+- Negative → more magenta on right side.
+- Useful for parking alignment.
+
+**6. Time of Flight**
+- From the Time-of-flight sensor via `tof.ping()`.
+- Measures actual physical distance in millimeters to the object in front (not camera-based).
+- Subtracting 95 is a calibration offset to account for sensor mounting or noise.
+- Lower number → object is closer physically.
 
 This data is used by the robot to decide how to move, steer, or stop.
+
+
 
 ## Control Logic and Behavior
 The robot's main control loop reads sensor values and camera data, then decides how to move. If the camera sends a large left or right balance, the error is deemed large, thus the robot adjusts steering strongly to keep centered. It uses Proportional-Derivative (PD) control in the function `turnAngle2()` to match the steering motor angle with the desired direction from the camera. The robot continually computes for this error value and adjusts the front motor speed to reduce this error.
