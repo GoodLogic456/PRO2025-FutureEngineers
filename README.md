@@ -1,7 +1,8 @@
 ### Introduction
 <img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/a881d5a4-3cb7-4174-ad33-f6f3b2d881e3">
 
-This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **PRO Future Engineers 2025**
+This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **World Robot Olympiad Open Championship
+Asia & Pacific 2025 - Future Engineers**
 
 This repository contains engineering materials of a self-driven vehicle's model. It also contains relevant information such as [wiring diagrams](https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/schemes), robot [images](https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/v-photos) and [videos](https://github.com/GoodLogic456/PRO2025-FutureEngineers/blob/main/video/video.md), code snippets, technical explanations, and [Engineering Journal](https://docs.google.com/spreadsheets/d/1C1dG2nG-GNh3qbOAAdMjjLXDwYX-iINyFB89ZOEz_A0/edit?usp=sharing).
 
