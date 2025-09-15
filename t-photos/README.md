@@ -5,7 +5,7 @@
 |:--------------------------:|:--------------------------:|
 | **OFFICIAL TEAM PHOTO**      | **FUNNY TEAM PHOTO**      |
 
-The official members of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **PRO Future Engineers 2025** are as follows:
-1. Chen Jin Can
-2. Tyler Fan
+The official members of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **WRO Open Championship Asia & Pacific Future Engineers 2025** are as follows:
+1. Sydney Tan
+2. Chen Jin Can
 3. Conrad Tan
