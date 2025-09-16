@@ -23,9 +23,7 @@ The robot uses **Proportional-Derivative** control to make steering more accurat
 
 ```
 def PID(kp, kd, balance):
-
     global prev_error, error
-    
 
     # Calculate the error
     error = balance
@@ -40,25 +38,17 @@ def PID(kp, kd, balance):
     prev_error = error
 
     # Set motor speeds based on control signal
+    control_signal = -control_signal
     fwspeed = control_signal
-    # bwspeed = 100 - control_signal
 
     # Limit motor speeds to max values
     fwspeed = max(-1000, min(1000, fwspeed))
-    # bwspeed = max(-1000, min(1000, bwspeed))
-
     if fwspeed > 0:
         fwspeed = 1000
     elif fwspeed < 0:
         fwspeed = -1000
     else:
         fwspeed = 1
-    
-    # if control_signal == 0:
-    #     control_signal = 1
-
-    # print("Error:", left-right, "control_signal:", control_signal, " fwspeed:", fwspeed)
-
     # Set motor speeds
     control_signal = int(control_signal)
 
@@ -77,8 +67,9 @@ def PID(kp, kd, balance):
     if bwspeed < minPower:
         bwspeed = minPower
     
-    bw.run(bwspeed)
-    print(" bwspeed:", bwspeed ,"control_signal:", control_signal)
+    bw.run(-bwspeed)
+
+    print(" fwspeed:", fwspeed ," bwspeed:", bwspeed ,"control_signal:", control_signal)
 ```
 
 ## Wheel and Motor Selection for Stability
@@ -124,15 +115,14 @@ To help the robot understand its surroundings, it uses different sensors.
 ### Color Sensor
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/f5033f01-560a-43f0-9e59-1c9295ce8c9a">There is also a color sensor facing the ground. It can see colors like blue, orange, or white on the floor. The robot uses this to detect lines at corners to spot corners, and know when to turn. This is also used to determine the direction of movement of the robot whether clockwise or counter-clockwise. 
 
-### Gyro Sensor
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/840c8dde-032e-4abe-a448-1e89d2b7d838">The gyro sensor enables the robot to determine its precise orientation and measure the degree of its rotation. This capability is crucial for parking, as the vehicle must align accurately with the designated spot. By providing real-time feedback, the gyro sensor enhances the robot’s ability to park with improved accuracy and consistency.
-
 ### 9-DOF Sensor
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/adbf839a-a2bb-44d0-ac4d-6377ce6ed761">The BNO055 is a 9-9 Degrees of Freedom (DOF) sensor. It  tracks movement, rotation, and direction using three sensors: an accelerometer, gyroscope, and magnetometer. It also has a built-in processor that combines the data and gives clear orientation, so the car can drive, turn, and avoid obstacles more accurately.
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/adbf839a-a2bb-44d0-ac4d-6377ce6ed761">The BNO055 is a 9 Degrees of Freedom (DOF) sensor. It  tracks rotation and direction of the robot. an accelerometer, gyroscope, and magnetometer. It uses its gyroscope to give a clearer orientation with less drift , so the car can avoid obstacles more accurately.
 
 ### Camera and Communication
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/9096ae26-8217-4886-bbfb-1efc27bbac4e">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
 
+### Gyro Sensor
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/840c8dde-032e-4abe-a448-1e89d2b7d838">The gyro sensor enables the robot to determine its precise orientation and measure the degree of its rotation. 
 
 <img align="center" src="https://github.com/user-attachments/assets/e2d0fb48-4ba0-4395-8dbb-bed20a0102cb">
 
