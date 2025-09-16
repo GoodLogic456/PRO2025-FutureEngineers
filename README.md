@@ -1,5 +1,5 @@
 ### Introduction
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/230c38cb-84c8-4483-828f-f6b70a13429e">
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/57859eae-9a47-4e67-ab5d-f5903471aeb7">
 
 This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **World Robot Olympiad Open Championship
 Asia & Pacific 2025 - Future Engineers**
