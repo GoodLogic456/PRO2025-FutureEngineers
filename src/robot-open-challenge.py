@@ -19,10 +19,11 @@ import threading
 
 # Create your objects here.
 ev3 = EV3Brick()
-st = SerialTalk(Port.S1)
+st = SerialTalk(Port.S4)
 bw = Motor(Port.B) #foward and back
 fw = Motor(Port.C) #left and right
-sensor = ColorSensor(Port.S3) #color sensor
+sensor = ColorSensor(Port.S2) #color sensor
+gyro = GyroSensor(Port.S3) #gyro sensor
 # Lultra = UltrasonicSensor(Port.S2) #left ultrasonic sensor
 # Rultra = UltrasonicSensor(Port.S4) #right ultrasonic sensor
 # Infra = InfraredSensor(Port.S4)
@@ -30,31 +31,17 @@ sensor = ColorSensor(Port.S3) #color sensor
 ev3.speaker.beep()
 
 direction = 0
-max_turnR = 500   #1274
-max_turnL = -500 # -2795
+max_turnR = 30   #500
+max_turnL = -30 # -500
 fw.reset_angle(0)
 bw.reset_angle(0)
+gyro.reset_angle(0)
+
 fwspeed = 0
 bwspeed = 0
 prev_error = 0
 error = 0
-prev_error_FB = 0
 run = 0
-LeftWins = True
-sensedBlock = 1
-turn = 0
-prevBW = 0
-lap_count = 0
-blockColor = 0
-blockColorStr = ""
-firstSense = True
-
-prev_distance = 0
-prev_Bpik = 0
-offTheWall = 1
-colorPriority = 0
-crossedBlue = True
-MGpass = 0
 
 # variables from camera
 balance = 0 
@@ -67,37 +54,36 @@ blockX = 0
 blueLineDist = 9999
 IRDist = 0
 
-left = 0
-right = 0
+# maxPower = 600 
+# minPower = 500
+#old pid sychronous bw speed
 
-maxPower = 600
-minPower = 500
-
+maxPower = 750
+minPower = 600
 
 # Write your program here.
 ev3.speaker.beep()
 
 def rgb_to_color(rgb):
     r, g, b = rgb
-    if r <= 20:
+
+    # print("R:", r, "G:", g, "B:", b)
+
+    if r < 40:
         # ev3.speaker.beep()
         return -1    # blue
 
-    elif b <= 10:
+    elif b < 70 and r > 40:
         # ev3.speaker.beep()
         return 1     # orange
 
     else:
         return 0     # white
 
-def senseCam():
-    status, data = st.call('cam')
-    globals()['balance'], globals()['BRB'], globals()['distance'], globals()['blueLineDist'], globals()['MGbalance'], globals()['IRDist'] = data
-
 def PID(kp, kd, balance):
 
     global prev_error, error
-    
+
 
     # Calculate the error
     error = balance
@@ -112,6 +98,7 @@ def PID(kp, kd, balance):
     prev_error = error
 
     # Set motor speeds based on control signal
+    control_signal = -control_signal
     fwspeed = control_signal
     # bwspeed = 100 - control_signal
 
@@ -149,8 +136,9 @@ def PID(kp, kd, balance):
     if bwspeed < minPower:
         bwspeed = minPower
     
-    bw.run(bwspeed)
-    print(" bwspeed:", bwspeed ,"control_signal:", control_signal)
+    bw.run(-bwspeed)
+
+    print(" fwspeed:", fwspeed ," bwspeed:", bwspeed ,"control_signal:", control_signal)
 
 
 def mainThread():
@@ -162,55 +150,81 @@ def mainThread():
         if Button.RIGHT in b:
             ev3.speaker.beep()
             break
-        
-    while run <= 11:
+    
 
-        senseCam()
+    while gyro.angle() <= 1060:
         color = rgb_to_color(sensor.rgb())
+        print("gyro", gyro.angle())
 
         if color == 1 and (direction == 0 or direction == 1):
             direction = 1
             # run += 1
             ev3.speaker.beep()
-            if fw.angle() < 700:
-                ev3.speaker.beep(100, 100)
+            if fw.angle() > -30:
                 bw.stop()
-                fw.run_target(1100, 700, wait=True)
+                fw.run_target(-1100, -30, wait=True)
 
         elif color == -1 and (direction == 0 or direction == -1):
             direction = -1
             # run += 1
             ev3.speaker.beep()
-            if fw.angle() > -700:
-                ev3.speaker.beep(100, 100)
+            if fw.angle() < 30:
                 bw.stop()
-                fw.run_target(-1100, -700, wait=True)
-        
-        # PID(0.35, 0.075, balance)
-        PID(0.15, 2.5, balance)
+                fw.run_target(1100, 30, wait=True)
+
+        PID(0.01, 1.5, balance)
+        # PID(0.005, 0.00085, balance)
 
 
     else:
         bw.reset_angle(0)
+        while(bw.angle() > -400):
+            # senseCam()
+            # PID(0.01, 0.005, balance)
+            PID(0.0125, 0.005, balance)
 
-        while(bw.angle() < 1800):
-            senseCam()
-            PID(0.15, 2.5, balance)
         
         bw.stop()
         fw.stop()
 
+
 def intersectionCount():
-    global run
+    global run, direction
     while run <= 11:
         # print("Run:", run)
         color = rgb_to_color(sensor.rgb())
-        if color == 1:
+        if color == 1 and (direction == 0 or direction == 1):
+            direction = 1
             run += 1
-            wait(2000)
+            # ev3.speaker.beep(100, 100)
+            wait(500)
+        elif color == -1 and (direction == 0 or direction == -1):
+            direction = -1
+            run += 1
+            # ev3.speaker.beep(100, 100)
+            wait(500)
 
 
 
+def senseCam():
+    start_yaw = None
+    while True:
+        status, data = st.call('cam')
+        globals()['balance'], globals()['BRB'], globals()['distance'], globals()['IRDist'], bad_yaw, globals()['blockX'] = data
+        
+        # if start_yaw==None:
+        #     start_yaw=bad_yaw
+        # if bad_yaw-start_yaw > 0:
+        #     final_yaw=bad_yaw - start_yaw
+        # else:
+        #     final_yaw= 360 + (bad_yaw - start_yaw)
 
+        # if round(final_yaw)==360:
+        #     final_yaw=0
+        # globals()['yaw']=round(final_yaw)
+
+
+
+threading.Thread(target=senseCam).start()
 threading.Thread(target=intersectionCount).start()
 mainThread()
