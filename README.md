@@ -15,7 +15,7 @@ This repository contains engineering materials of a self-driven vehicle's model.
 
 # 🛑 MOBILITY MANAGEMENT 🛑
 ## Motor and Steering System
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/9a97cd82-10d3-4494-8b1e-2387e99ee5ca">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera**, **Time-of-Flight sensor**, **color sensor**,  and  **gyro sensor**. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/9a97cd82-10d3-4494-8b1e-2387e99ee5ca">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera**, **Time-of-Flight sensor**, **color sensor**,  **gyro sensor**, and  **9-DOF sensor**. 
 
 The robot uses **Proportional-Derivative** control to make steering more accurate. By continuously calculating the error  `balance`  and its rate of change `d_error` , the robot adjusts its steering angle using a control signal derived from the proportional  `kp`  and derivative  `kd`  gains. The front wheel motor  uses this signal to steer toward the correct heading, while the back wheel motor adjusts its speed to maintain smooth movement without overpowering the turn. The robot uses PD control to respond not only to how far off-center it is, but also to how quickly that error is changing, resulting in more precise and stable steering behavior.
 
@@ -102,8 +102,9 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 | EV3 Large Motor           | 1          |
 | EV3 Medium Motor          | 1          |
 | Time-of-Flight Sensor     | 1          |
-| Color Sensors             | 2          |
+| Color Sensors             | 1          |
 | Gyro Sensor               | 1          |
+| 9-DOF Sensor               | 1          |
 | OpenMV H7 Plus Camera     | 1          |
 | Wide Angle Lens		    | 1          |
 | Chassis (LEGO Parts)      | Assorted   |
