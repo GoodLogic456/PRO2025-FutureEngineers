@@ -275,45 +275,6 @@ def find_block(img,img_debug,distance_cap):
 ```
    val=b.y()+b.h()
 ```
-## Calculating Target Error
-Once a block is detected, the camera calculates an "error" value by comparing the block’s position with the center of the image. If the block is red, the target is slightly offset to the right; if it is green, it is offset to the left. 
-
-<table>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/63b2a3f2-bb3b-4c54-902b-34c8c69dfbb4"/></td>
-  </tr>
-</table>
-<table>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/838445fb-3571-498f-b8a8-872357acd197"/></td>
-  </tr>
-</table>
-
-This gives the robot a point to aim for and the error tells how far it needs to turn left or right to face the target. Visual feedback, like circles and arrows, is drawn on the image for debugging and testing. This is done in the `target_point()` function:
-
-```
-def target_point(img_debug,block,color,k,near,nearMulti):
-    offset_scaler=int(k*(block.y()+block.h()))
-    if (block.y()+block.h())>near:offset_scaler=int(offset_scaler*nearMulti)
-    if color=="red":offset_x=(block.x()+block.w())+offset_scaler#right side-offset
-    if color=="green":offset_x=block.x()-offset_scaler#left side-offset
-    draw_x=max(0,min(319,offset_x))
-    img_debug.draw_circle(draw_x,block.cy(),3,color=(150,255,150),fill=True)#target for cursor
-    img_debug.draw_arrow(img_center[0],img_center[1],draw_x,img_center[1],color=(0,0,255))
-    error=offset_x-img_center[0]
-    if color=="red" and error<0:error=error/2
-    if color=="green" and error>0:error=error/2
-    img_debug.draw_string(img_center[0]-30,img_center[1]-10,"Err: "+str(error),color=(255,255,255),scale=1)
-    return error
-```
-
-- `offset_scaler` shifts the target point depending on the block's vertical position, giving more offset the closer it is.
-- `k` is a tuning value that controls how much the robot offsets its aim depending on how close the block is.
-- For red blocks, the robot aims slightly to the right: `offset_x` is set to the right edge of the block plus offset.
-- For green blocks, it aims slightly to the left: `offset_x` is set to the left edge minus offset.
-- The error is calculated as the difference between the target position `offset_x` and the image center `img_center[0] = 160`.
-- This error is used to steer the robot left or right to face the block.
-- Circles, arrows, and error text are drawn on the image for debugging.
 
 ## Block Distance Detection
 The robot checks how close the block is using the following code:
@@ -333,53 +294,45 @@ If the block is near the bottom of the image, it means the block is close to the
 
 ```
 st=SerialTalk()
-cam_data=[0,0,0,0,0,0,0]
+cam_data=[0,0,0,0,0,0]
 def cam():return cam_data# global cam_data
-st.add_command(cam, "repr") cam_data=[white_balance,error,distance,blue,magenta_balance,tof.ping()-95,block_x]
-    st.process()
+st.add_command(cam, "repr") cam_data=[white_balance,color,distance,tof.ping(),round(yaw),block_x]
+st.process()
 ```
 
 At the end of every frame, the camera sends six (6) important values to the EV3 brick using SerialTalk over UART communication. These values are measured from specific parts of the image called Regions of Interest (ROIs), which are focused areas the camera checks. The camera uses color thresholds, ROIs, and pixel thresholds in the  find_blobs()  function to detect walls and blocks. The six data values sent are as follows:
 <br>
 <br>
+
 **1. White balance**
-- Comes from `check_color_balance()` → `black_balance = Lblack_pixels - Rblack_pixels`.
+- Comes from  `check_color_balance()`  →  `black_balance() = Lblack_pixels - Rblack_pixels` 
 - The difference in the total black pixels detected between the left and right regions of the image.
 - Positive → more black on the left side.
 - Negative → more black on the right side.
-- Used for general left/right centering against walls or black lines.
+- Used for general left or right centering against walls or black lines.
 
-**2. Error**
-- Computed by `target_point()` only if a red or green block is detected.
-- The horizontal offset from the image center to the adjusted “target point” on the detected block.
-- Positive → target is to the right of center.
-- Negative → target is to the left of center.
-- Small error means the block is already well-aligned.
+**2. Color**
+- Gives the color of the block to the robot
 
 **3. Distance**
-- `240 - (block["blob"][1] + block["blob"][3])` → bottom of the detected block’s bounding box measured from image bottom.
+-  `240 - (block[“blob”][1] + block[“blob”][3])`  → bottom of the detected block’s bounding box measured from image bottom.
 - Approximates how far the nearest red or green block is from the camera in pixels.
 - Smaller number → block is closer to the camera.
 - Larger number → block is farther away.
 
-**4. Blue**
-- From `blue = 240 - merged_y(blue_blobs)`.
-- Indicates the vertical position of the bottom of blue areas in the image.
-- Larger value → blue is higher up in the image (possibly farther away).
-- Smaller value → blue is lower in the image (possibly closer).
-
-**5. Magenta balance**
-- From `magenta_balance = max(-1100, min(1100, (Lmagenta_pixels - Rmagenta_pixels)/6))`.
-- The difference in magenta pixels between the left and right ROIs.
-- Positive → more magenta on left side.
-- Negative → more magenta on right side.
-- Useful for parking alignment.
-
-**6. Time of Flight**
-- From the Time-of-flight sensor via `tof.ping()`.
+**4. Time of Flight**
+- From the Time-of-flight sensor via  `tof.ping()` 
 - Measures actual physical distance in millimeters to the object in front (not camera-based).
 - Subtracting 95 is a calibration offset to account for sensor mounting or noise.
 - Lower number → object is closer physically.
+
+**5. Yaw**
+- From the 9-DOF sensor via  `imu.euler()`
+- Gives the accurate direction of the robot
+
+**6. Block_x**
+- Gives the center of a block’s  x coordinate
+
 
 This data is used by the robot to decide how to move, steer, or stop.
 
