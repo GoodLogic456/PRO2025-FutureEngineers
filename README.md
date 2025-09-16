@@ -1,5 +1,5 @@
 ### Introduction
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/a881d5a4-3cb7-4174-ad33-f6f3b2d881e3">
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/230c38cb-84c8-4483-828f-f6b70a13429e">
 
 This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **World Robot Olympiad Open Championship
 Asia & Pacific 2025 - Future Engineers**
@@ -12,9 +12,10 @@ This repository contains engineering materials of a self-driven vehicle's model.
 - [Obstacle Management](#-obstacle-management-)
 
 
+
 # 🛑 MOBILITY MANAGEMENT 🛑
 ## Motor and Steering System
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/da1f7ea8-02c0-4a99-b11e-f5ee9c429ad7">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera**, **Time-of-Flight sensor**, **color sensor**,  and  **gyro sensor**. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/9a97cd82-10d3-4494-8b1e-2387e99ee5ca">The robot was built using the Lego EV3 Mindstorm Robot System. The robot moves using one **(1) EV3 large motor** at the back and one **(1) EV3 medium motor** at the front. The large motor pushes the robot forward and backward, while the medium motor turns a gear rack to steer the front wheel. As required by the rules, the robot employs an **Ackermann** steering system, just like a real car, so it can turn smoothly. The steering system is powered by a worm gear, giving it much power to turn. The robot is also guided by an **OpenMV Camera**, **Time-of-Flight sensor**, **color sensor**,  and  **gyro sensor**. 
 
 The robot uses **Proportional-Derivative** control to make steering more accurate. By continuously calculating the error  `balance`  and its rate of change `d_error` , the robot adjusts its steering angle using a control signal derived from the proportional  `kp`  and derivative  `kd`  gains. The front wheel motor  uses this signal to steer toward the correct heading, while the back wheel motor adjusts its speed to maintain smooth movement without overpowering the turn. The robot uses PD control to respond not only to how far off-center it is, but also to how quickly that error is changing, resulting in more precise and stable steering behavior.
 
@@ -81,7 +82,7 @@ def PID(kp, kd, balance):
 ```
 
 ## Wheel and Motor Selection for Stability
-<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/4d7e9bac-02fc-4d3b-9a42-662e360fbae3">The motors were picked because they are strong, reliable, and have enough turning power (torque) to move the robot smoothly on the track. The robot also uses hard wheels with flat edges in both the front and back. This design gives the robot better grip and control when turning. Since the wheels are the same size and shape, the robot stays level, which helps the color sensor stay flat so it can read the floor properly. 
+<img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/ba71dd6a-8557-4401-afd7-e159b95799b8">The motors were picked because they are strong, reliable, and have enough turning power (torque) to move the robot smoothly on the track. The robot also uses hard wheels with flat edges in both the front and back. This design gives the robot better grip and control when turning. Since the wheels are the same size and shape, the robot stays level, which helps the color sensor stay flat so it can read the floor properly. 
 
 
 ## Chassis Build and Balance
