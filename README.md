@@ -121,13 +121,13 @@ To help the robot understand its surroundings, it uses different sensors.
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/56449262-6bec-4036-917c-d06d3153e6d7">The Time-of-Flight (ToF) sensor mounted at the front of the robot helps measure the distance to objects ahead. It allows the robot to detect obstacles and avoid collisions. This sensor helps the car make smart decisions while driving, such as choosing safe paths and stopping when needed.
 
 ### Color Sensor
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/f847887e-5be0-4b40-9718-31206c784458">There is also a color sensor facing the ground. It can see colors like blue, orange, or white on the floor. The robot uses this to detect lines at corners to spot corners, and know when to turn. This is also used to determine the direction of movement of the robot whether clockwise or counter-clockwise. 
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/f5033f01-560a-43f0-9e59-1c9295ce8c9a">There is also a color sensor facing the ground. It can see colors like blue, orange, or white on the floor. The robot uses this to detect lines at corners to spot corners, and know when to turn. This is also used to determine the direction of movement of the robot whether clockwise or counter-clockwise. 
 
 ### Gyro Sensor
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/840c8dde-032e-4abe-a448-1e89d2b7d838">The gyro sensor enables the robot to determine its precise orientation and measure the degree of its rotation. This capability is crucial for parking, as the vehicle must align accurately with the designated spot. By providing real-time feedback, the gyro sensor enhances the robot’s ability to park with improved accuracy and consistency.
 
 ### 9-DOF Sensor
-<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/adbf839a-a2bb-44d0-ac4d-6377ce6ed761">The BNO055 sensor is used to provide accurate and real-time orientation data, helping the car understand its position and movement.
+<img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/adbf839a-a2bb-44d0-ac4d-6377ce6ed761">The BNO055 is a 9-9 Degrees of Freedom (DOF) sensor. It  tracks movement, rotation, and direction using three sensors: an accelerometer, gyroscope, and magnetometer. It also has a built-in processor that combines the data and gives clear orientation, so the car can drive, turn, and avoid obstacles more accurately.
 
 ### Camera and Communication
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/9096ae26-8217-4886-bbfb-1efc27bbac4e">The robot uses an OpenMV H7 Plus camera mounted at the front. The camera gives the robot visual data like where a block is, or when it is facing a wall. Data communication between the EV3 and the OpenMV Camera is achieved using UART communication via the SerialTalk library. 
