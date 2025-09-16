@@ -165,18 +165,12 @@ All the parts, including motors, sensors, camera, and EV3 brick, are placed care
 ## Camera Assistance
 <img align="right" width="350" height="auto" src="https://github.com/user-attachments/assets/3f60f6c6-5b83-4e1c-8707-b796545f7719">The OpenMV H7 Plus camera is used to help the robot see and understand its environment. It is set to color mode with a resolution of 320×240 pixels and adjusted using vertical flip and horizontal mirror so that the camera view matches the real-world direction of the robot. Automatic settings such as white balance and gain are turned off to keep the image consistent across different lighting conditions. The camera also applies lens correction to reduce distortion and make object shapes appear more accurate.
 
-The following flowchart outlines a step-by-step image processing sequence for a vision-based robot system. It begins with setting up the camera, which prepares the OpenMV module to start capturing images. The next stage focuses on finding color balance. During this step, the screen is split into two regions - left and right Regions of Interest (ROIs) - to help the camera examine each side separately. In each ROI, the system searches for black blobs and counts how many black pixels are present. The camera then uses this pixel data to calculate a value called `black_balance`, which represents a cleaner and more useful interpretation of the scene.
+The following flowchart outlines a step-by-step image processing sequence for a vision-based robot system. It begins with setting up the camera, which prepares the OpenMV module to start capturing images. The next stage focuses on finding color balance. During this step, the screen is split into two regions - left and right Regions of Interest (ROIs) - to help the camera examine each side separately. In each ROI, the system searches for black blobs and counts how many black pixels are present. The camera then uses this pixel data to calculate a value called `white_balance`, which represents a cleaner and more useful interpretation of the scene.
 
 After establishing color balance, the camera begins the process of detecting blocks. It identifies blocks by finding blobs and measuring how close they are to the robot. This distance is estimated using the formula `blob.y + blob.h`, where higher values indicate that the block is nearer. The camera then selects the blob that appears closest.
 Once the closest block is found, the camera calculates an error value. This error represents the horizontal difference between the center of the image and a target point placed to the left or right of the detected block. The error is scaled based on how far the block is from the robot.
 
-In the final step, the camera sends the `black_balance` value, the `error`, and the estimated `distance` to the EV3 robot. This data helps the robot adjust its position and angle so it can correctly face the block based on what the camera sees.
-
-<table>
-  <tr>
-    <td><img src="https://github.com/user-attachments/assets/5993c869-aabb-49ea-9a77-09fcefcd0261"/></td>
-  </tr>
-</table>
+In the final step, the camera sends the  `white_balance`  ,  `color` ,  `distance`  ,  `tof.ping`  ,  `round(yaw)`  ,  `block_x`  to the EV3 robot. This data helps the robot adjust its position and angle so it can correctly face the block based on what the camera sees.
 <br>
 </br>
 
@@ -184,42 +178,21 @@ In the final step, the camera sends the `black_balance` value, the `error`, and 
 To help the robot stay centered on the track or avoid walls, the camera checks how much black is seen on the left and right sides of the image. It uses a defined threshold to find black blobs and calculates a **"white balance"** value based on the difference in black pixel count between the two sides. 
 ![detect-black-wall](https://github.com/user-attachments/assets/9bbf9c6a-a324-4d3f-905e-7f5882d23243)
 
-If one side has more black than the other, the robot can adjust its path to stay in the middle or prepare for a turn. The robot avoids hitting walls by checking how much black it sees on the left and right sides of the camera view. This is done in the `check_color_balance()` function:
+If one side has more black than the other, the robot can adjust its path to stay in the middle or prepare for a turn. The robot avoids hitting walls by checking how much black it sees on the left and right sides of the camera view. This is done in the `white_balance()` function:
 
 ```
-def check_color_balance(img,img_debug,ROI_Y,ROI_H):
+def white_balance(img,img_debug,ROI_Y,ROI_H):
     #image filter to make find_blobs more accurate
     img_contrast1=img.copy()
     img_contrast1.gamma_corr(gamma=1.3,contrast=2.2)
-    img_contrast2=img.copy()
-    img_contrast2.gamma_corr(gamma=1.9, contrast=1.1,brightness=-0.1)#(gamma=2.0,contrast=1.5,brightness=-0.15)
-    MAGENTA_THRESH=(0, 100, 17, 64, -22, 6)#(46, 80, 25, 127, -30, 14)#(60, 100, 25, 127, -128, 10)#(0, 100, 19, 127, -34, 20)
-    BLACK_THRESH=(0, 93, -128, 0, -7, 36)
+    BLACK_THRESH=(0, 83, -128, 7, -128, 127)
     #find black blobs
-    roi_leftP=(0,ROI_Y,img.width()//3,ROI_H)
-    roi_rightP=(2*(img.width()//3),ROI_Y,img.width()//3,ROI_H)
-    roi_leftH=(0,ROI_Y,img.width()//2,ROI_H)
-    roi_rightH=(img.width()//2,ROI_Y,img.width()//2,ROI_H)
+    roi_leftP=(0,ROI_Y,img.width()//4,ROI_H)
+    roi_rightP=(3*(img.width()//4),ROI_Y,img.width()//4,ROI_H)
     Lblack_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=roi_leftP,pixels_threshold=200)#find left side black blobs
     Rblack_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=roi_rightP,pixels_threshold=200)#find right side black blobs
     Lblack_pixels=sum([b.pixels() for b in Lblack_blobs])#sum of black pixels that are located in the left ROI
     Rblack_pixels=sum([b.pixels() for b in Rblack_blobs])#sum of black pixels that are located in the right ROI
-    Lmagenta_blobs=img_contrast2.find_blobs([MAGENTA_THRESH],roi=roi_leftH,pixels_threshold=400)#find left side magenta blobs
-    Rmagenta_blobs=img_contrast2.find_blobs([MAGENTA_THRESH],roi=roi_rightH,pixels_threshold=400)#find right side magenta blobs
-    Lmagenta_pixels=sum([b.pixels() for b in Lmagenta_blobs])#sum of magenta pixels that are located in the left ROI
-    Rmagenta_pixels=sum([b.pixels() for b in Rmagenta_blobs])#sum of magenta pixels that are located in the right ROI
-    BLUE_THRESH=(0, 57, -20, 10, -34, -11)#(0, 80, -128, 127, -128, -5)#(0, 100, -128, 127, -128, -11)
-    #(140,0,40,240)
-    blue_blobs=img_contrast2.find_blobs([BLUE_THRESH],pixels_threshold=10,roi=img_roi,merge=True)
-    blue=240-merged_y(blue_blobs)
-    #blackH_balance=99999
-    #wall_distance=99999
-    #LblackH_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=(0,40,img.width()//2,200),pixels_threshold=200,merge=True)#find left side black blobs
-    #RblackH_blobs=img_contrast1.find_blobs([BLACK_THRESH],roi=(img.width()//2,40,img.width()//2,200),pixels_threshold=200,merge=True)#find right side black blobs
-    #if len(LblackH_blobs)==1 and len(RblackH_blobs)==1:
-        #blackH_balance=(RblackH_blobs[0].y()+RblackH_blobs[0].h())-(LblackH_blobs[0].y()+LblackH_blobs[0].h())
-        #if abs(blackH_balance)<15:
-        #wall_distance=240-(((RblackH_blobs[0].y()+RblackH_blobs[0].h())+(LblackH_blobs[0].y()+LblackH_blobs[0].h()))/2)
     if True: #drawings for debugging
         img_debug.draw_rectangle(roi_leftP,color=(255,0,0))#draw red box on left
         img_debug.draw_rectangle(roi_rightP,color=(0,0,255))#draw blue box on right
@@ -227,15 +200,8 @@ def check_color_balance(img,img_debug,ROI_Y,ROI_H):
             img_debug.draw_rectangle(blob.rect(),color=(0,255,255))
         for blob in Rblack_blobs:
             img_debug.draw_rectangle(blob.rect(),color=(0,255,255))
-        for blob in Lmagenta_blobs:
-            img_debug.draw_rectangle(blob.rect(),color=(255,100,255))
-        for blob in Rmagenta_blobs:
-            img_debug.draw_rectangle(blob.rect(),color=(255,100,255))
-        for blob in blue_blobs:
-            img_debug.draw_rectangle(blob.rect(),color=(0,0,255))
-    black_balance=Lblack_pixels-Rblack_pixels#max(-1100,min(1100,(Lblack_pixels-Rblack_pixels)/8))
-    magenta_balance=max(-1100,min(1100,(Lmagenta_pixels+Rmagenta_pixels)/12))
-    return int(black_balance),int(magenta_balance),int(blue)
+    black_balance=Lblack_pixels-Rblack_pixels
+    return int(black_balance)
 ```
 - If the left side has more black, the robot knows it is too close to the left wall and should move right, and vice versa.
 - This `black_balance` value helps the robot stay in the middle.
@@ -253,9 +219,6 @@ The robot uses color to find objects in front of it. This is done in `find_block
 ```
 def find_block(img,img_debug,distance_cap):
     img_contrast=img.copy()
-    #img_contrast.gamma_corr(gamma=1.5,contrast=1.0,brightness=0)
-    img_contrast=img_contrast.lens_corr(strength=1.53,x_corr=-0.04)#correct lens distortion
-    #img_contrast=img_contrast.lens_corr(strength=1.62,x_corr=-0.04)#correct lens distortion
     img_contrast.gamma_corr(gamma=1.9,contrast=1.1,brightness=-0.1)
     color="None"
     blob=None
@@ -265,12 +228,12 @@ def find_block(img,img_debug,distance_cap):
     green_val=0
     blocks=0
     #thresholds in LAB format for color filtering
-    threshold_red=(0, 45, 23, 127, 5, 31)#(0, 32, 10, 127, 9, 127)#(0, 31, 10, 127, 9, 127)#(20, 45, 25, 40, 10, 127)#(0, 45, 25, 49, 13, 127)#(0, 46, 18, 49, 13, 127)#(0, 43, 9, 127, 4, 127)#(0, 35, 10, 127, -10, 127)#(0, 43, 10, 127, -12, 127)
-    threshold_green=(25, 50, -65, -25, 21, 79)#(20, 45, -40, -15, 4, 57)#(21, 43, -128, -19, 16, 127)#(0, 100, -56, -25, 17, 50)#(28, 46, -56, -25, 17, 50)#(20, 45, -40, -15, 4, 57)#(20, 54, -40, -17, 0, 57)#(0, 100, -98, -25, -10, 127)
+    threshold_red=(17, 60, 22, 54, -2, 35)#(23, 61, 16, 54, 0, 22)#(0, 47, 38, 54, 22, 55)#(0, 45, 23, 127, 5, 31)#(0, 32, 10, 127, 9, 127)#(0, 31, 10, 127, 9, 127)#(20, 45, 25, 40, 10, 127)#(0, 45, 25, 49, 13, 127)#(0, 46, 18, 49, 13, 127)#(0, 43, 9, 127, 4, 127)#(0, 35, 10, 127, -10, 127)#(0, 43, 10, 127, -12, 127)
+    threshold_green=(29, 47, -46, -21, 10, 36)#(25, 50, -65, -25, 21, 79)#(25, 50, -65, -25, 21, 79)#(20, 45, -40, -15, 4, 57)#(21, 43, -128, -19, 16, 127)#(0, 100, -56, -25, 17, 50)#(28, 46, -56, -25, 17, 50)#(20, 45, -40, -15, 4, 57)#(20, 54, -40, -17, 0, 57)#(0, 100, -98, -25, -10, 127)
     #detect blobs with minimum size; no merging to prevent combining distant blocks
-    red=img_contrast.find_blobs([threshold_red],pixel_threshold=100,roi=img_roi,merge=True)
-    green=img_contrast.find_blobs([threshold_green],pixel_threshold=100,roi=img_roi,merge=True)
-    if not red and not green:return {"color":"None","blob":None,"blocks":blocks}
+    img_debug.draw_rectangle(img_roi,color=(0,0,255))
+    red=img_contrast.find_blobs([threshold_red],area_threshold=150,roi=img_roi,merge=True)
+    green=img_contrast.find_blobs([threshold_green],area_threshold=150,roi=img_roi,merge=True)
     if red:# evaluate all red blobs
         for b in red:
             img_debug.draw_rectangle(b.rect(),color=(255,0,0))
@@ -279,7 +242,7 @@ def find_block(img,img_debug,distance_cap):
             if val>red_val:# update nearest red
                 nearestRed=b
                 red_val=val
-    if green:# evaluate all green blobs
+    if green:# valuate all green blobs
         for b in green:
             img_debug.draw_rectangle(b.rect(),color=(0,255,0))
             val=b.y()+b.h()                            #(2*b.pixels())-b.area()
@@ -287,6 +250,7 @@ def find_block(img,img_debug,distance_cap):
             if val>green_val:# update nearest green
                 nearestGreen=b
                 green_val=val
+    if red_val==0 and green_val==0:return {"color":"None","blob":None,"blocks":blocks}
     # choose the blob with the higher score
     if nearestRed and nearestGreen:
         if red_val>=green_val:
