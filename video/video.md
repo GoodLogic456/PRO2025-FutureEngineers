@@ -1,8 +1,8 @@
 <h1 align="center">🛑 OPEN CHALLENGE 🛑</h1>
 
 <div align="center">
-  <a href="https://youtu.be/Xz750-hScLU">
-    <img src="https://github.com/user-attachments/assets/dd803c1c-83e0-45fc-9e44-9322b71c37a3" alt="PRO 2025 Future Engineers Open Challenge" width="400" style="height:auto;" />
+  <a href="https://youtu.be/AJUA1XYb7B0">
+    <img src="https://github.com/user-attachments/assets/8ccbe839-166e-40a9-b82b-0fc19366f147" alt="PRO 2025 Future Engineers Open Challenge" width="400" style="height:auto;" />
   </a>
 
 **Open Challenge:**  [https://youtu.be/AJUA1XYb7B0](https://youtu.be/AJUA1XYb7B0)
