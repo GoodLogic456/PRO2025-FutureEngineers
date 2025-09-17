@@ -86,13 +86,16 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 
 # 🛑 POWER AND SENSE MANAGEMENT 🛑
 
-## Bill of Material (BOM)
-| **Component**              | **QTY**    |
-|---------------------------|------------|------------|
-| Time-of-Flight Sensor     | 1          |  |
-| 9-DOF Sensor               | 1          |  |
-| OpenMV H7 Plus Camera     | 1          |  |
-| Wide Angle Lens		    | 1          |  |
+## Bill of Materials (BOM)
+
+
+| **Component**  | **QTY** |**PHOTO** |
+|----------|----------|----------|
+| Time-of-Flight Sensor    | 1   | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/1c281547-4b13-4824-9026-66098ac47b98">  |
+| 9-DOF Sensor    | 1  | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/500a48b8-a905-4693-9280-fe0456b58ef7">   |
+| OpenMV H7 Plus Camera     | 1   | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/ca1d665c-cde8-455f-a26d-12d1ab6409a1">    |
+| Wide Angle Lens	   |1   | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/7eb588bf-bb52-49d7-9370-03dba4abc7ed">    |
+
 
 
 ## Power Supply
