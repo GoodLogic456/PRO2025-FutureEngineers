@@ -2,7 +2,7 @@
 <img align="right" width="300" height="auto" src="https://github.com/user-attachments/assets/57859eae-9a47-4e67-ab5d-f5903471aeb7">
 
 This is the Engineering Documentation of **TEAM GRACE CHRISTIAN COLLEGE (GCC)** for **World Robot Olympiad Open Championship
-Asia & Pacific 2025 - Future Engineers**
+Asia & Pacific 2025 - Future Engineers**.
 
 This repository contains engineering materials of a self-driven vehicle's model. It also contains relevant information such as [wiring diagrams](https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/schemes), robot [images](https://github.com/GoodLogic456/PRO2025-FutureEngineers/tree/main/v-photos) and [videos](https://github.com/GoodLogic456/PRO2025-FutureEngineers/blob/main/video/video.md), code snippets, technical explanations, and [Engineering Journal](https://docs.google.com/spreadsheets/d/1C1dG2nG-GNh3qbOAAdMjjLXDwYX-iINyFB89ZOEz_A0/edit?usp=sharing).
 
@@ -88,18 +88,12 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 
 ## Bill of Material (BOM)
 | **Component**              | **QTY**    |
-|---------------------------|------------|
-| EV3 Intelligent Brick     | 1          |
-| EV3 Large Motor           | 1          |
-| EV3 Medium Motor          | 1          |
-| Time-of-Flight Sensor     | 1          |
-| Color Sensors             | 1          |
-| Gyro Sensor               | 1          |
-| 9-DOF Sensor               | 1          |
-| OpenMV H7 Plus Camera     | 1          |
-| Wide Angle Lens		    | 1          |
-| Chassis (LEGO Parts)      | Assorted   |
-| Cables                    | 6          |
+|---------------------------|------------|------------|
+| Time-of-Flight Sensor     | 1          |  |
+| 9-DOF Sensor               | 1          |  |
+| OpenMV H7 Plus Camera     | 1          |  |
+| Wide Angle Lens		    | 1          |  |
+
 
 ## Power Supply
 <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/e38cd337-aa66-42fe-b2eb-afc074b24a00">The robot is powered by a rechargeable EV3 battery pack. This battery gives steady and long-lasting power to the EV3 brick, motors, and LEGO sensors. It was chosen instead of AA batteries because it gives more consistent power, is easy to recharge, and helps avoid stopping often during testing or competitions. The EV3 brick works like the robot’s power and control center. It controls how electricity is shared with the motors and sensors.
@@ -342,63 +336,95 @@ This data is used by the robot to decide how to move, steer, or stop.
 The robot's main control loop reads sensor values and camera data, then decides how to move. If the camera sends a large left or right balance, the error is deemed large, thus the robot adjusts steering strongly to keep centered. It uses Proportional-Derivative (PD) control in the function `PID()` to match the steering motor angle with the desired direction from the camera. The robot continually computes for this error value and adjusts the front motor speed to reduce this error.
 
 ```
-def PID(kp, kd, balance):
-
-    global prev_error, error
+def gyroPID(kp, kd, target_yaw, ki=0, minPower=200, maxPower=700, resetKI=True):
     
+    global prev_error, error, yaw, section, sum_error
+
+    if resetKI:
+        sum_error = 0
+
+    if minPower > 0 or maxPower > 0:
+        error = calc_turn_error(yaw, target_yaw)
+    else:
+        error = -(calc_turn_error(yaw, target_yaw)) 
 
     # Calculate the error
-    error = balance
+    # if minPower > 0 or maxPower > 0:
+    #     error = yaw - target
+    # else:
+    #     error = target -yaw
 
     # Calculate the derivative of the error
     d_error = error - prev_error
 
+    sum_error += error
+
     # Calculate the control signal
-    control_signal = kp * error + kd * d_error
+    control_signal = kp * error + kd * d_error + ki * sum_error
+
+    # control_signal = control_signal
 
     # Update previous error
     prev_error = error
 
-    # Set motor speeds based on control signal
-    fwspeed = control_signal
-    # bwspeed = 100 - control_signal
-
-    # Limit motor speeds to max values
-    fwspeed = max(-1000, min(1000, fwspeed))
-    # bwspeed = max(-1000, min(1000, bwspeed))
-
-    if fwspeed > 0:
-        fwspeed = 1000
-    elif fwspeed < 0:
-        fwspeed = -1000
+    if control_signal > 0:
+        fwspeed = -abs((maxPower - (abs(control_signal) * 20)))
+    elif control_signal < 0:
+        fwspeed = abs((maxPower - (abs(control_signal) * 20)))
     else:
         fwspeed = 1
     
-    # if control_signal == 0:
-    #     control_signal = 1
+    if int(fwspeed) == 0:
+        fwspeed = 1
 
-    # print("Error:", left-right, "control_signal:", control_signal, " fwspeed:", fwspeed)
+            # Set motor speeds
 
-    # Set motor speeds
-    control_signal = int(control_signal)
-
-    if control_signal > max_turnR:
-        control_signal = max_turnR
-    elif control_signal < max_turnL:
-        control_signal = max_turnL
-    
+    control_signal = int(-(control_signal))
+    fwspeed = int(fwspeed)
     fw.run_target(fwspeed, control_signal, wait=False)
 
-    if control_signal > maxPower or control_signal < -maxPower:
-        control_signal = maxPower
+
+    if minPower > 0 or maxPower > 0:
+        if control_signal > maxPower or control_signal < -maxPower:
+            control_signal = maxPower
+
+    else:
+        if control_signal < maxPower or control_signal > -maxPower:
+            control_signal = maxPower
+
+    if minPower > 0 or maxPower > 0:
+        bwspeed = maxPower - (abs(control_signal) * 20) 
+
+        if bwspeed < minPower:
+            bwspeed = minPower
+    else:
+        bwspeed = maxPower + (abs(control_signal) * 20) 
+
+        if bwspeed > minPower:
+            bwspeed = minPower
+
+    if bwspeed > 0:
+        bw.run(-700)
+    else:
+        bw.run(700)
+
+def gyroTurn(minpower, maxpower, steer, angle): # Ferror is the first value is not changing 
+
+    global yaw
+    begin_angle = yaw
+    Ferror = calc_turn_error(begin_angle, (target_yaw + angle))
+    error = calc_turn_error(yaw, (target_yaw + angle))
+    steerToAngle(0, 300, steering = steer)
     
-    bwspeed = maxPower - abs(control_signal)
-    
-    if bwspeed < minPower:
-        bwspeed = minPower
-    
-    bw.run(bwspeed)
-    print(" bwspeed:", bwspeed ,"control_signal:", control_signal)
+    while sign(error) == sign(Ferror) and sign(Ferror)!=0:
+        error = calc_turn_error(yaw, (target_yaw + angle))
+
+        # print("error",error,"sign",sign(error))
+        bwspeed = int(((maxpower - minpower ) * (abs(error)/abs(Ferror)) + minpower))
+        bw.run(-bwspeed)
+
+    bw.stop()
+    steerToAngle(0, 300, steering = 0)
 ```
 
 ## Color Detection and Turning
