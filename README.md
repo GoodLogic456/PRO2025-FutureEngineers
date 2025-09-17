@@ -87,8 +87,15 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 # 🛑 POWER AND SENSE MANAGEMENT 🛑
 
 ## Bill of Materials (BOM)
-
-
+![61](https://github.com/user-attachments/assets/158462e6-1736-4dc4-8705-5524fe24030a)
+![62](https://github.com/user-attachments/assets/ce3f4679-cef4-41b6-8cdc-79420136bc80)
+![63](https://github.com/user-attachments/assets/46b13d33-13d1-4f35-a522-17ac5527eaf8)
+![64](https://github.com/user-attachments/assets/cfd31493-4224-4904-a096-200c063bf5b6)
+![65](https://github.com/user-attachments/assets/95af64ee-c978-4a65-9801-ecf6d3724580)
+![66](https://github.com/user-attachments/assets/224f6bd3-71ff-4a20-a656-87e6fe3ddee1)
+![67](https://github.com/user-attachments/assets/643e1fb9-063f-44d9-8940-19f77279ee65)
+![68](https://github.com/user-attachments/assets/df8072ac-e073-4934-a478-a517917c27f2)
+![69](https://github.com/user-attachments/assets/1a91322c-db16-419f-af2f-9197690abe15)
 | **Component**  | **QTY** |**PHOTO** |
 |----------|----------|----------|
 | Time-of-Flight Sensor    | 1   | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/1c281547-4b13-4824-9026-66098ac47b98">  |
