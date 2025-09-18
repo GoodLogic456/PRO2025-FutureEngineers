@@ -79,6 +79,44 @@ def PID(kp, kd, balance):
 ## Chassis Build and Balance
 The robot’s body, or chassis, is made of LEGO parts. It is strong but not heavy, and it holds all the parts in place. The motors, EV3 intelligent brick, camera, and sensors are mounted carefully to keep the robot balanced. The weight is spread out evenly to stop the robot from tipping during sharp turns. The final design makes the robot steady, smooth, and ready to finish the course without losing control.
 
+## Building Instructions
+|       |       |
+|:-----------:|:-----------:|
+|   ![1](https://github.com/user-attachments/assets/fa9385a4-b065-499a-b367-f030f6d2e92a)    |   ![2](https://github.com/user-attachments/assets/b0e76ca0-0afd-4365-ac5f-f25c96457530)  |
+|  ![3](https://github.com/user-attachments/assets/3daf9568-ab5f-4c73-95af-8548b5e655c6)     |  ![4](https://github.com/user-attachments/assets/f3803874-5ca8-423d-a910-0647b66b027c)   |
+|   ![5](https://github.com/user-attachments/assets/8c81226a-2992-407f-8728-ff90054f942f)    |  ![6](https://github.com/user-attachments/assets/28c57701-8258-4ec4-b419-e7185ddf30fc)   |
+|   ![7](https://github.com/user-attachments/assets/f05cf2d6-76eb-4adc-8fc4-b8dcbf2c8dff)    |   ![8](https://github.com/user-attachments/assets/6e25bff2-3a6c-465b-aa40-22ef72ae93dc)   |
+|  ![9](https://github.com/user-attachments/assets/8dd086ac-b6f0-439a-a723-6c15299e82ad)     |   ![10](https://github.com/user-attachments/assets/833d18f0-655c-4962-901b-1f5837eadcf0)  |
+|   ![11](https://github.com/user-attachments/assets/79070488-73ee-4af5-b095-e593bd752a89)     |   ![12](https://github.com/user-attachments/assets/23b2809e-2531-4e5b-ac57-268775eda7b5)  |
+|   ![13](https://github.com/user-attachments/assets/7713518a-c5c7-4229-bf1e-89cf1fe553b1)    |   ![14](https://github.com/user-attachments/assets/849b792a-8082-4099-b64a-b620830b0efa)   |
+|   ![15](https://github.com/user-attachments/assets/b8a95c2b-80fc-454d-acf1-d23ba6bacb77)    |  ![16](https://github.com/user-attachments/assets/e98eefb7-56ce-4ade-85d1-36de89a58b05)  |
+|   ![17](https://github.com/user-attachments/assets/278c659a-1ab4-4783-81af-e1f102b05be4)    |   ![18](https://github.com/user-attachments/assets/d5d73d5e-afe4-439a-9b7d-5fbfc711250b)
+  |
+|  ![19](https://github.com/user-attachments/assets/6341250c-37e4-4f1f-85a7-9b6c16d3eb0c)  |   ![20](https://github.com/user-attachments/assets/77c04bb6-8af4-4eea-ab93-79ba847e9b4d) |
+|   ![21](https://github.com/user-attachments/assets/9a1ea50b-743c-4478-9ae0-b58640e999ac)    |   ![22](https://github.com/user-attachments/assets/86d66b06-92e1-41b3-9acc-d84a0e7f004f)  |
+|   ![23](https://github.com/user-attachments/assets/47ce499a-a6a2-45a5-8705-4f1f97f1efd4)    |   ![24](https://github.com/user-attachments/assets/79199aa0-e369-4af8-b5bd-847e6df29311)2  |
+|   ![25](https://github.com/user-attachments/assets/fcd24ec6-9f97-421b-bace-3b27e4e30bf6)    |   ![26](https://github.com/user-attachments/assets/7792b1ce-b256-46bd-9c1d-47ced71c821e) |
+|  ![27](https://github.com/user-attachments/assets/c87ba1ea-df7a-4153-bfcb-292d5e145a64)   |   ![28](https://github.com/user-attachments/assets/c3f5dcc9-1f08-440c-a014-0973bd971847) |
+|   ![29](https://github.com/user-attachments/assets/0a8f5957-4bfe-460b-8734-eca58b1f02a2)    |   ![30](https://github.com/user-attachments/assets/6151649a-1c8c-48ff-873b-fc585d7e9d00)  |
+|   ![31](https://github.com/user-attachments/assets/f0b700ed-bd01-46d3-b015-64d8b492cb5f)
+   |   ![32](https://github.com/user-attachments/assets/595962b7-8465-483e-a965-91044b932ca4)
+ |
+|   ![33](https://github.com/user-attachments/assets/a6b4ab4e-9022-4f3b-82c5-c1f0fdb340ae)   |   ![34](https://github.com/user-attachments/assets/15ea85c0-3a76-4726-b448-e9f77b1a1a7d)  |
+|   ![35](https://github.com/user-attachments/assets/9eece7d6-f9c3-4cc4-96be-746c2125f3d2)   |   ![36](https://github.com/user-attachments/assets/15db550f-98bd-42cc-b1e0-eb90d32c56f9)  |
+|   ![37](https://github.com/user-attachments/assets/5609a6aa-1a9e-4cc6-bc19-f36e9e0a0b64)  |   ![38](https://github.com/user-attachments/assets/6706b473-d4ed-4986-bc9e-3887bd03e351)  |
+|   ![39](https://github.com/user-attachments/assets/774e9fef-2d47-4b21-afca-f4678eefb29e)   |   ![40](https://github.com/user-attachments/assets/5e533637-8636-4028-aebc-c50586ab3c22) |
+|   ![41](https://github.com/user-attachments/assets/567525cc-79a2-43cd-9689-1fc62e4d0797)   |  ![42](https://github.com/user-attachments/assets/f148b01b-598e-4c7c-a356-9f6ec248808c)  |
+|   ![43](https://github.com/user-attachments/assets/dabf82bc-599c-42c2-8930-db46d3900f62)   |   ![44](https://github.com/user-attachments/assets/de73d6b1-d52d-4ede-8a97-3081b2983103)  |
+|   ![45](https://github.com/user-attachments/assets/d7fe63a5-ad91-416e-b337-85f593924822)   |   ![46](https://github.com/user-attachments/assets/d1870e23-c6f8-4ca0-bc7c-a4fefb239f71)  |
+|   ![47](https://github.com/user-attachments/assets/e3067468-7459-4d05-aa5a-f7763d47b4df)   |   ![48](https://github.com/user-attachments/assets/5c53e227-dedc-493a-9b6e-e33f32fd9d7d) |
+|   ![49](https://github.com/user-attachments/assets/cabc3051-f45d-46f7-a84a-38266f39a46d)   |  ![50](https://github.com/user-attachments/assets/693e3dcb-7c34-43c4-9bb6-ecc5e4b5f365)  |
+|   ![51](https://github.com/user-attachments/assets/4b6d01c7-3b02-4cc5-9dca-eb11e05bbd1e)  |  ![52](https://github.com/user-attachments/assets/95b00a1d-2de8-45f7-9e79-7ac55fb6ed6e) |
+|   ![53](https://github.com/user-attachments/assets/d2a8faea-641c-4bf0-8494-6ec07d91b29d)  |  ![54](https://github.com/user-attachments/assets/d8ac6611-7a7f-494b-8d3e-f85fe82c053d)  |
+|   ![55](https://github.com/user-attachments/assets/e2031331-e851-4651-84e6-4fe7102a2309)   |   ![56](https://github.com/user-attachments/assets/da0d616d-b4ba-4b58-9a22-8503a02cf1db)
+  |
+|   ![57](https://github.com/user-attachments/assets/2f86c795-5d2c-4857-bd3f-8d9afa039934)   |   ![58](https://github.com/user-attachments/assets/bbec9be9-6bfb-4c21-a66d-99c1dd862dc3)  |
+|   ![59](https://github.com/user-attachments/assets/3470635c-b18c-44d0-b122-8ad5b3f9bd06)    |   ![60](https://github.com/user-attachments/assets/e6048a47-0159-455f-94a0-f53f835898cc)  |
+
 ## 💡 <mark> How to Improve Mobility Management</mark>
 One way to improve the robot is by **adding a rear camera**. This camera can help the robot see what is behind it, which is useful when it needs to move backward or park between objects. It can also help the robot avoid bumping into walls or blocks while reversing. With a rear camera, the robot can better understand its surroundings and move more safely and accurately. This helps the robot do its tasks more smoothly.
 
@@ -97,7 +135,7 @@ Making the robot **smaller and lighter** helps it turn faster and easier. A ligh
 ![68](https://github.com/user-attachments/assets/df8072ac-e073-4934-a478-a517917c27f2)
 ![69](https://github.com/user-attachments/assets/1a91322c-db16-419f-af2f-9197690abe15)
 | **Component**  | **QTY** |**PHOTO** |
-|----------|----------|----------|
+|:-----------:|:-----------:|:-----------:|
 | Time-of-Flight Sensor    | 1   | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/1c281547-4b13-4824-9026-66098ac47b98">  |
 | 9-DOF Sensor    | 1  | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/500a48b8-a905-4693-9280-fe0456b58ef7">   |
 | OpenMV H7 Plus Camera     | 1   | <img align="right" width="150" height="auto" src="https://github.com/user-attachments/assets/ca1d665c-cde8-455f-a26d-12d1ab6409a1">    |
