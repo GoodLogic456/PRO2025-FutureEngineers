@@ -90,17 +90,14 @@ The robot’s body, or chassis, is made of LEGO parts. It is strong but not heav
 |   ![11](https://github.com/user-attachments/assets/79070488-73ee-4af5-b095-e593bd752a89)     |   ![12](https://github.com/user-attachments/assets/23b2809e-2531-4e5b-ac57-268775eda7b5)  |
 |   ![13](https://github.com/user-attachments/assets/7713518a-c5c7-4229-bf1e-89cf1fe553b1)    |   ![14](https://github.com/user-attachments/assets/849b792a-8082-4099-b64a-b620830b0efa)   |
 |   ![15](https://github.com/user-attachments/assets/b8a95c2b-80fc-454d-acf1-d23ba6bacb77)    |  ![16](https://github.com/user-attachments/assets/e98eefb7-56ce-4ade-85d1-36de89a58b05)  |
-|   ![17](https://github.com/user-attachments/assets/278c659a-1ab4-4783-81af-e1f102b05be4)    |   ![18](https://github.com/user-attachments/assets/d5d73d5e-afe4-439a-9b7d-5fbfc711250b)
-  |
+|   ![17](https://github.com/user-attachments/assets/278c659a-1ab4-4783-81af-e1f102b05be4)    |   ![18](https://github.com/user-attachments/assets/d5d73d5e-afe4-439a-9b7d-5fbfc711250b)  |
 |  ![19](https://github.com/user-attachments/assets/6341250c-37e4-4f1f-85a7-9b6c16d3eb0c)  |   ![20](https://github.com/user-attachments/assets/77c04bb6-8af4-4eea-ab93-79ba847e9b4d) |
 |   ![21](https://github.com/user-attachments/assets/9a1ea50b-743c-4478-9ae0-b58640e999ac)    |   ![22](https://github.com/user-attachments/assets/86d66b06-92e1-41b3-9acc-d84a0e7f004f)  |
 |   ![23](https://github.com/user-attachments/assets/47ce499a-a6a2-45a5-8705-4f1f97f1efd4)    |   ![24](https://github.com/user-attachments/assets/79199aa0-e369-4af8-b5bd-847e6df29311)2  |
 |   ![25](https://github.com/user-attachments/assets/fcd24ec6-9f97-421b-bace-3b27e4e30bf6)    |   ![26](https://github.com/user-attachments/assets/7792b1ce-b256-46bd-9c1d-47ced71c821e) |
 |  ![27](https://github.com/user-attachments/assets/c87ba1ea-df7a-4153-bfcb-292d5e145a64)   |   ![28](https://github.com/user-attachments/assets/c3f5dcc9-1f08-440c-a014-0973bd971847) |
 |   ![29](https://github.com/user-attachments/assets/0a8f5957-4bfe-460b-8734-eca58b1f02a2)    |   ![30](https://github.com/user-attachments/assets/6151649a-1c8c-48ff-873b-fc585d7e9d00)  |
-|   ![31](https://github.com/user-attachments/assets/f0b700ed-bd01-46d3-b015-64d8b492cb5f)
-   |   ![32](https://github.com/user-attachments/assets/595962b7-8465-483e-a965-91044b932ca4)
- |
+|   ![31](https://github.com/user-attachments/assets/f0b700ed-bd01-46d3-b015-64d8b492cb5f)|   ![32](https://github.com/user-attachments/assets/595962b7-8465-483e-a965-91044b932ca4)|
 |   ![33](https://github.com/user-attachments/assets/a6b4ab4e-9022-4f3b-82c5-c1f0fdb340ae)   |   ![34](https://github.com/user-attachments/assets/15ea85c0-3a76-4726-b448-e9f77b1a1a7d)  |
 |   ![35](https://github.com/user-attachments/assets/9eece7d6-f9c3-4cc4-96be-746c2125f3d2)   |   ![36](https://github.com/user-attachments/assets/15db550f-98bd-42cc-b1e0-eb90d32c56f9)  |
 |   ![37](https://github.com/user-attachments/assets/5609a6aa-1a9e-4cc6-bc19-f36e9e0a0b64)  |   ![38](https://github.com/user-attachments/assets/6706b473-d4ed-4986-bc9e-3887bd03e351)  |
@@ -112,8 +109,7 @@ The robot’s body, or chassis, is made of LEGO parts. It is strong but not heav
 |   ![49](https://github.com/user-attachments/assets/cabc3051-f45d-46f7-a84a-38266f39a46d)   |  ![50](https://github.com/user-attachments/assets/693e3dcb-7c34-43c4-9bb6-ecc5e4b5f365)  |
 |   ![51](https://github.com/user-attachments/assets/4b6d01c7-3b02-4cc5-9dca-eb11e05bbd1e)  |  ![52](https://github.com/user-attachments/assets/95b00a1d-2de8-45f7-9e79-7ac55fb6ed6e) |
 |   ![53](https://github.com/user-attachments/assets/d2a8faea-641c-4bf0-8494-6ec07d91b29d)  |  ![54](https://github.com/user-attachments/assets/d8ac6611-7a7f-494b-8d3e-f85fe82c053d)  |
-|   ![55](https://github.com/user-attachments/assets/e2031331-e851-4651-84e6-4fe7102a2309)   |   ![56](https://github.com/user-attachments/assets/da0d616d-b4ba-4b58-9a22-8503a02cf1db)
-  |
+|   ![55](https://github.com/user-attachments/assets/e2031331-e851-4651-84e6-4fe7102a2309)   |   ![56](https://github.com/user-attachments/assets/da0d616d-b4ba-4b58-9a22-8503a02cf1db)|
 |   ![57](https://github.com/user-attachments/assets/2f86c795-5d2c-4857-bd3f-8d9afa039934)   |   ![58](https://github.com/user-attachments/assets/bbec9be9-6bfb-4c21-a66d-99c1dd862dc3)  |
 |   ![59](https://github.com/user-attachments/assets/3470635c-b18c-44d0-b122-8ad5b3f9bd06)    |   ![60](https://github.com/user-attachments/assets/e6048a47-0159-455f-94a0-f53f835898cc)  |
 
