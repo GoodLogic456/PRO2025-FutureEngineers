@@ -12,77 +12,64 @@ from serialtalk.auto import SerialTalk
 
 import threading
 
-
-# This program requires LEGO EV3 MicroPython v2.0 or higher.
-# Click "Open user guide" on the EV3 extension tab for more information.
-
 #####left power + right power -
 #####gyro left - right +
 
 # Create your objects here.
 ev3 = EV3Brick()
 st = SerialTalk(Port.S4)
-bw = Motor(Port.B) #foward and back
+bw = Motor(Port.A) #foward and back
 fw = Motor(Port.C) #left and right
 sensor = ColorSensor(Port.S2) #color sensor
 # gyro = GyroSensor(Port.S3) #gyro sensor
 timer = StopWatch()
 ev3.speaker.beep()
 
-direction = 0
-
 fw.reset_angle(0)
 bw.reset_angle(0)
 # gyro.reset_angle(0)
 
-gyro_angle = 0
+direction = 0
+lane = 1
 
 prev_error = 0
 error = 0
 sum_error = 0
-run = 0
 final_error = 0
 Ferror = 0
 
-cornergreen = False
-predistance = 999
+passedABlock=True
 greenmove = False
 color = 0
 target = 0
 section = 0
 angle = 0
 
-arc1 = 0
-arc2 = 0
-x1 = 0
-x2 = 0
 target_yaw = 0
 
+saveCD = 0
 
+kp = 1.5
+kd = 2.5
+ki = 0.000001
 
 # variables from camera
 balance = 0 
 BRB = 0 
 distance =  999
-yaw = True
-blockX = 0
 IRDist = 9999
-
-lane = 1
 yaw = 0
+blockX = 0
+
+
 
 firstBlockPerSection = [0, 0, 0, 0]
 firstBlock = False
 
 
-# Write your program here.
-# ev3.speaker.beep()
-
 def rgb_to_color(rgb):
     r, g, b = rgb
-
     # print("R:", r, "G:", g, "B:", b)
-
     if r < 40:
         # ev3.speaker.beep()
         return -1    # blue
@@ -94,110 +81,71 @@ def rgb_to_color(rgb):
     else:
         return 0     # white
 
-def PIDBlocks(kp, kd, BRB, minbwPower=250, maxbwPower=600, max_turnR=900, max_turnL=-900):
-
-    global prev_error, error    
-
-    # Calculate the error
-    error = BRB
-
-    # Calculate the derivative of the error
-    d_error = error - prev_error
-
-    # Calculate the control signal
-    control_signal = kp * error + kd * d_error
-
-    # Update previous error
-    prev_error = error
-
-    # Set motor speeds based on control signal
-    fwspeed = control_signal
+# def steerToAngle(bwPower, fwPower, time=1250, steering=0):
+#     global timer
     
-    # Limit motor speeds to max values
-    fwspeed = max(-1000, min(1000, fwspeed))
-    # bwspeed = max(-1000, min(1000, bwspeed))
+#     bw.run(bwPower)
+#     timer.reset()
 
-    if fwspeed > 0:
-        fwspeed = 1000
-    elif fwspeed < 0:
-        fwspeed = -1000
-    else:
-        fwspeed = 1
-    
-    
-    # print("BRB:", BRB, "distance:", distance)
+#     if fw.angle() < steering:
+#         while fw.angle() <= steering and timer.time() < time:  #steering facing to the left 
+#             # print("fw_angle()", fw.angle())       
+#             fw.run(fwPower)
+#     else:
+#         while fw.angle() >= steering and timer.time() < time:   #steering facing to the right
+#             # print("fw_angle()", fw.angle())
+#             fw.run(-fwPower)
 
-    # Set motor speeds
-    control_signal = int(control_signal)
-    # print("distance", distance, "control_signal", control_signal, "BRB", BRB)
+#     fw.stop()
+#     fw.brake()
 
-    if control_signal > max_turnR:
-        control_signal = max_turnR
-    elif control_signal < max_turnL:
-        control_signal = max_turnL
+def steerToAngle(bwPower, fwPower, time=750, steering=0):
 
-    fw.run_target(fwspeed, control_signal, wait=False)
+    global timer
     
-    if control_signal > maxbwPower or control_signal < -maxbwPower:
-        control_signal = maxbwPower
-    
-    bwspeed = maxbwPower - abs(control_signal)
-    
-    if bwspeed < minbwPower:
-        bwspeed = minbwPower
-        
-    bw.run(bwspeed)
-
-def steerToAngle(bwPower, fwPower, time=1500, steering=0):
     bw.run(bwPower)
     timer.reset()
 
+    kp = 12.5
+    kd = 5.0
+
+    prev_error = 0
+
     if fw.angle() < steering:
-        while fw.angle() <= steering:  #steering facing to the left 
-            # print("fw_angle()", fw.angle())       
+        error = steering - fw.angle() 
+        while abs(error) > 0 and timer.time() < time:  #steering facing to the left 
+            print("error", error)
+            error = steering - fw.angle()
+            fwPower = kp * error + kd * (error - prev_error) 
+
+            if fwPower > 0 and fwPower < 75:
+                fwPower = 75
+            elif fwPower < 0 and fwPower > -75:
+                fwPower = -75
+
             fw.run(fwPower)
+            prev_error = error
     else:
-        while fw.angle() >= steering :   #steering facing to the right
-            # print("fw_angle()", fw.angle())
+        error = fw.angle() - steering
+        while abs(error) > 0 and timer.time() < time:  #steering facing to the left 
+            print("error", error)
+            error = fw.angle() - steering
+            fwPower = kp * error + kd * (error - prev_error)  
+
+            if fwPower > 0 and fwPower < 75:
+                fwPower = 75
+            elif fwPower < 0 and fwPower > -75:
+                fwPower = -75
+
+
             fw.run(-fwPower)
+            prev_error = error
 
     fw.stop()
     fw.brake()
-    ev3.speaker.beep()  
-
-def shiftlane():
-    steerToAngle(0, 300, steering=-26)
-    while gyro.angle() <= 65:
-        bwspeed = (65 - gyro.angle())/65 * 800 
-        if bwspeed < 200:
-            bwspeed = 200
-        print(gyro.angle())
-        bw.run(-bwspeed)
-
-    
-    bw.stop()    
-    # steerToAngle(0, 300, steering=0)
-    
-    # bw.run_angle(-600, 125)
-    steerToAngle(0, 300, steering=40)
-
-    while gyro.angle() >= 0:
-        if gyro.angle() > 0:
-            bwspeed = (gyro.angle() - 0)/65 * 800
-
-        if bwspeed < 200:
-            bwspeed = 200
-        print(gyro.angle())
-        bw.run(-bwspeed)
-    
-    steerToAngle(0, 300, steering=0)
-    
-    bw.stop()
 
 def calc_turn_error(yaw,target_yaw):
     global final_error
-
-    #gyro to yaw conversion
     if target_yaw < 0:
         target_yaw = target_yaw + 360
     elif target_yaw > 359:
@@ -226,7 +174,7 @@ def calc_turn_error(yaw,target_yaw):
         final_error= -error 
     return final_error
 
-def sign(error):
+def sign(error): #positive =1 negative-1
     return (error > 0) - (error < 0)
 
 def gyroPID(kp, kd, target_yaw, ki=0, minPower=200, maxPower=700, resetKI=True):
@@ -241,12 +189,6 @@ def gyroPID(kp, kd, target_yaw, ki=0, minPower=200, maxPower=700, resetKI=True):
     else:
         error = -(calc_turn_error(yaw, target_yaw)) 
 
-    # Calculate the error
-    # if minPower > 0 or maxPower > 0:
-    #     error = yaw - target
-    # else:
-    #     error = target -yaw
-
     # Calculate the derivative of the error
     d_error = error - prev_error
 
@@ -255,22 +197,20 @@ def gyroPID(kp, kd, target_yaw, ki=0, minPower=200, maxPower=700, resetKI=True):
     # Calculate the control signal
     control_signal = kp * error + kd * d_error + ki * sum_error
 
-    # control_signal = control_signal
-
     # Update previous error
     prev_error = error
 
     if control_signal > 0:
-        fwspeed = -abs((maxPower - (abs(control_signal) * 20)))
+        fwspeed = -abs((maxPower - (abs(control_signal) * 50)))
     elif control_signal < 0:
-        fwspeed = abs((maxPower - (abs(control_signal) * 20)))
+        fwspeed = abs((maxPower - (abs(control_signal) * 50)))
     else:
         fwspeed = 1
     
     if int(fwspeed) == 0:
         fwspeed = 1
 
-            # Set motor speeds
+    # Set motor speeds
 
     control_signal = int(-(control_signal))
     fwspeed = int(fwspeed)
@@ -296,45 +236,46 @@ def gyroPID(kp, kd, target_yaw, ki=0, minPower=200, maxPower=700, resetKI=True):
         if bwspeed > minPower:
             bwspeed = minPower
 
-    if bwspeed > 0:
-        bw.run(-700)
-    else:
-        bw.run(700)
+    # if bwspeed > 0:
+    #     bw.run(-700)
+    # else:
+    #     bw.run(700)
     
-    # bw.run(-bwspeed)
+    bw.run(-maxPower)
 
     # print("yaw", yaw, "error:", error, "control_signal:", control_signal, "fwspeed:", fwspeed,"bwspeed:", bwspeed)
 
 def gyroDistance(minPower,maxPower,target_yaw,distance):
     bw.reset_angle(0)
 
+    global kp, kd, ki
+
     while abs(bw.angle()) < abs(distance):
-        gyroPID(1.75, 0.0001, target_yaw=target_yaw, ki=0.0035, minPower=minPower, maxPower=maxPower, resetKI=False)
+        gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=minPower, maxPower=maxPower, resetKI=True)
 
     bw.brake()
 
-def gyroTime(minPower,maxPower,target_yaw,time):
-
-    timer.reset()
-    while timer.time() < time:
-        gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=minPower, maxPower=maxPower)
-
-    bw.stop()
-
 def gyroIRDist(minPower,maxPower,target_yaw,uldist):
-    global IRDist
+    global IRDist, kp, kd, ki
 
     while IRDist > uldist:
-        gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=minPower, maxPower=maxPower)
+        gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=minPower, maxPower=maxPower, resetKI=True)
     bw.brake()
 
 def gyroTurn(minpower, maxpower, steer, angle): # Ferror is the first value is not changing 
 
-    global yaw
+    global yaw, target_yaw
     begin_angle = yaw
     Ferror = calc_turn_error(begin_angle, (target_yaw + angle))
     error = calc_turn_error(yaw, (target_yaw + angle))
-    steerToAngle(0, 300, steering = steer)
+
+    if steer == 1:
+        # steerToAngle(0, 300, steering = 45)
+        steerToAngle(0, 300, steering = 65)
+    elif steer == -1:
+        # steerToAngle(0, 300, steering = -45)
+        steerToAngle(0, 300, steering = -65)
+
     
     while sign(error) == sign(Ferror) and sign(Ferror)!=0:
         error = calc_turn_error(yaw, (target_yaw + angle))
@@ -344,388 +285,233 @@ def gyroTurn(minpower, maxpower, steer, angle): # Ferror is the first value is n
         bw.run(-bwspeed)
 
     bw.stop()
-    steerToAngle(0, 300, steering = 0)
 
-def corner():  # default laneOut is right lane
-    global lane, target_yaw, section, cornergreen, sum_error
-    
+def corner(laneOut=1, saved=False):# default laneOut is inner lane
+    global lane, target_yaw, section, sum_error,direction, timer, saveCD
     sum_error = 0
-    
-    bw.hold()
+    bw.reset_angle(0)
 
-    steerToAngle(0, 300, steering = 0)
-
-
-    if lane == -1:  # left lane
-
+    if laneOut == 1:
         gyroDistance(-200,-700,target_yaw,1500)
-        steerToAngle(0, 300, steering = 0)
-        gyroTurn(50, 900, -40, 90)
-        steerToAngle(0, 300, steering = 0)
-        # gyroTime(-200,-600,(target + 90),1200)
-        
-
         lane = 1
-
-
-    elif lane == 1:  # right lane 
-        
-        if cornergreen == False:
-            gyroDistance(-200,-700,target_yaw,1450)
-            steerToAngle(0, 300, steering = 0)
-            gyroTurn(50, 900, -40, 85)
-            steerToAngle(0, 300, steering = 0)
-
-            lane = 1
-
-        elif cornergreen == True:
-            gyroDistance(-200,-700,target_yaw,450)
-            steerToAngle(0, 300, steering = 0)
-            gyroTurn(50, 900, -40, 85)
-            steerToAngle(0, 300, steering = 0)
-
-            lane = -1
-
-    section = section + 1
-    cornergreen = False
-
-    gyroPID(1.95, 0.0025, target_yaw=target_yaw, minPower=-200, maxPower=-700)        
-   
-
-def corner(laneOut=1):  # default laneOut is right lane
-    global lane, target_yaw, section, cornergreen, sum_error
-    
-    sum_error = 0
-    
-    bw.hold()
-
+    elif laneOut == -1:
+        gyroDistance(-200,-700,target_yaw,500)
+        lane = -1
+    elif laneOut == 0:
+        gyroDistance(-200,-700,target_yaw,750)                
+        lane = -1
+    wait(100)    
+    gyroTurn(150, 900, (-1 * direction), (85 * direction) )
     steerToAngle(0, 300, steering = 0)
-
-
-    if lane == -1:  # left lane
-
-        if laneOut == 1:
-            gyroDistance(-200,-700,target_yaw,1200)
-            lane = 1
-        elif laneOut == -1:
-            gyroDistance(-200,-700,target_yaw,300)
-            lane = -1
-        
-        steerToAngle(0, 300, steering = 0)
-        gyroTurn(150, 900, -40, 90)
-        steerToAngle(0, 300, steering = 0)
-        # gyroTime(-200,-600,(target + 90),1200)
-        
-        # lane = 1
-
-
-    elif lane == 1:  # right lane 
-        
-        if cornergreen == False:
-
-            if laneOut == 1:
-                gyroDistance(-200,-700,target_yaw,1200)
-                lane = 1
-            elif laneOut == -1:
-                gyroDistance(-200,-700,target_yaw,300)
-                lane = -1
-            
-            steerToAngle(0, 300, steering = 0)
-            gyroTurn(150, 900, -40, 85)
-            steerToAngle(0, 300, steering = 0)
-
-            # lane = 1
-
-        elif cornergreen == True:
-            if laneOut == 1:
-                gyroDistance(-200,-700,target_yaw,1200)
-                lane = 1
-            elif laneOut == -1:
-                gyroDistance(-200,-700,target_yaw,300)
-                lane = -1
-            
-            steerToAngle(0, 300, steering = 0)
-            gyroTurn(150, 900, -40, 85)
-            steerToAngle(0, 300, steering = 0)
-
-            lane = -1
-
-    section = section + 1
-    cornergreen = False
-
-    # gyroPID(1.95, 0.0025, target_yaw=target_yaw, minPower=-200, maxPower=-700)
-
+    # wait(2000)
+    if saved==False:gyroDistance(-200,-700,(target_yaw+(90*direction)),600)
+    saveCD = timer.time() + 1500
+    section = section + direction
 
 def shiftlane2():
-    ###########For color is red 50
-    global lane, greenmove
+    global lane, greenmove, section , direction, BRB, kp, kd, ki
+    if (BRB * direction) == 1:#clockwise=red,counterclockwise=green
+        storeFirstBlockPerSection(abs(section),1)
+        if lane == -1 :
+            gyroTurn(150, 900, (-1 * direction) , angle = (55 * direction))
 
-    ev3.speaker.beep(100)
+            if abs(section) % 4 == 0:
+                gyroDistance(200,500,target_yaw=(target_yaw + (55 * direction)),distance=100)
+            else:
+                gyroDistance(200,500,target_yaw=(target_yaw + (55 * direction)),distance=400)
 
-    if BRB == 1 :  #red
-        if lane != 1 :
-            # print("target",target)
-            gyroTurn(150, 900, -40, angle = 85)
 
-            gyroDistance(200,800,target_yaw=(target_yaw + 85),distance=150)
-
-            gyroTurn(150, 700, 35, angle = 0)
-
+            gyroTurn(150, 700, (1 * direction), angle = 0)
             steerToAngle(0, 300, steering = 0)
+            if abs(section)<5:
+                gyroDistance(-200,-800,target_yaw=target_yaw,distance=150)
             lane = 1
         else:
-            gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=200, maxPower=700)   
-
-        storeFirstBlockPerSection(1)     
-
-
-    elif BRB == -1: 
-        if lane != -1:
-            steerToAngle(0, 300, steering = 0)
-
+            gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=200, maxPower=700, resetKI=True)  
+    elif (BRB * direction) == -1:#clockwise=green,counterclockwise=red
+        storeFirstBlockPerSection(abs(section),-1)
+        if lane == 1:
             greenmove = True
-            gyroTurn(150, 900, 35, angle= (-85))#(-(target + 90)))
-
-            steerToAngle(0, 300, steering = 0)
-            # bw.run_time(-600, 1500,wait=True)
-            gyroIRDist(150, 500, target_yaw=(target_yaw -85), uldist=200)
-   
-            steerToAngle(0, 300, steering = 0)
-
-            gyroDistance(-200,-800,target_yaw=(target_yaw - 85),distance=355)
-
-
-            # bw.run_angle(600, 600, wait=True)
-
-            gyroTurn(150, 800, -40, 0)
-
+            steerToAngle(0, 150, steering = 0)
+            gyroTurn(150, 900, (1 * direction), angle=(-85 * direction))
+            steerToAngle(0, 150, steering = 0)
+            gyroIRDist(150, 500, target_yaw=(target_yaw -(85 * direction)), uldist=200)
+            steerToAngle(0, 150, steering = 0)
+            if abs(section) % 4 == 0:
+                gyroDistance(-200,-800,target_yaw=(target_yaw - (85 * direction)),distance=700)            
+            else:
+                gyroDistance(-200,-800,target_yaw=(target_yaw - (85 * direction)),distance=400)
+            gyroTurn(150, 800, (-1 * direction),angle=0)
             steerToAngle(0, 300, steering = 0)
             greenmove = False
             lane = -1
-    
+        else:
+            gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=200, maxPower=700, resetKI=True)    
 
-        storeFirstBlockPerSection(-1) 
-        gyroPID(1.75, 0.025, target_yaw=target_yaw, minPower=200, maxPower=700)       
-
-
-
-def storeFirstBlockPerSection(color):
-
-    global firstBlock, firstBlockPerSection, section
-
-    if firstBlock and firstBlockPerSection[abs(section) % 4] == 0:
-        # print("abs(section) % 4", abs(section) % 4)
-        firstBlockPerSection[abs(section) % 4] = color  # store first block
+def storeFirstBlockPerSection(sectionToApply, movement):
+    global firstBlock, firstBlockPerSection
+    if firstBlock and firstBlockPerSection[abs(sectionToApply) % 4] == 0:
+        firstBlockPerSection[abs(sectionToApply) % 4] = movement  # store movement block
         firstBlock = False
 
-
 def mainThread():
-# while True:
-    #     global color, direction, lane , predistance , cornergreen, target, greenmove, section
+    global direction, lane, target_yaw, section, BRB, timer, kp, kd, ki
+    print(firstBlockPerSection)
+    timer.reset()
+ 
+    #get out of parking
+    if balance > 0.0:  # clockwise movement (turn right from parking)
+        direction = 1
+        gyroTurn(100, 700, -1, angle = 45)
+        steerToAngle(0, 300, steering = 0)
+        if BRB == -1:  # green
+            steerToAngle(0, 300, steering = 0)
+            gyroDistance(200,500,target_yaw = 45 , distance=80)            
+            gyroTurn(100, 700, 1, angle = -10)
+            steerToAngle(0, 300, steering = 0)
+            lane = -1
+        elif BRB == 1  or BRB == 0:  # red
+            gyroTurn(100, 500, -1, angle = 90)
+            steerToAngle(0, 300, steering = 0)
+            gyroDistance(200,500,target_yaw = 90 , distance=270)
+            gyroTurn(200, 700, 1, angle = 0)
+            steerToAngle(0, 300, steering = 0)
+            lane = 1
+    elif balance < 0.0:  # counter-clockwise movement (turn left from parking)
+        direction = -1
+        gyroTurn(100, 800, 1, angle = -62)
+        wait(100)        
+        if BRB == -1:  # green
+            # gyroDistance(-200,-500,target_yaw = -62 , distance=270)
+            # wait(100)
+            gyroTurn(100, 500, 1, angle = -90)
+            wait(100)
+            steerToAngle(0, 400, steering = 0)
+            wait(100)
+            gyroDistance(200,500,target_yaw = -90 , distance=310)
+            wait(100)
+            gyroTurn(200, 700, -1, angle = 0)
+            wait(100)
+            steerToAngle(0, 200, steering = 0)
+            wait(100)
+            gyroDistance(-200,-500,target_yaw = 0 , distance=450)
+            lane = 1
+        elif BRB == 1  or BRB == 0:  # red
+            steerToAngle(0, 150, steering = 0) 
+            wait(100)
+            gyroTurn(100, 700, -1, angle = 0)
+            steerToAngle(0, 300, steering = 0)
+            lane = -1
 
-    #     color = rgb_to_color(sensor.rgb())
-
-    #     while calc_turn_error() <= 90:
-
-    #         bw.run(-200)
-    #         print(calc_turn_error())
-
-    #     steerToAngle(0, 250, steering = 0)
-
-    #     bw.stop()
-    #     wait(2000)
-
-
-
-        
-
-        # print("yaw",yaw,"target_yaw",target_yaw)
-
-        # if distance <= 205: 
-        #     if lane == 1 and blockX < 0:  #red
-        #         shiftlane2()
-        #     elif lane == -1:  #blue
-        #         shiftlane2()
-
-        #     elif lane == 1 and blockX > 0 and BRB == -1:
-        #         cornergreen = True
-        #         gyroPID(1.68, 0.018, target=target, minPower=200, maxPower=700)
-
-        # else:
-        #     gyroPID(1.68, 20, target=target, minPower=200, maxPower=700)        
-
-
-
-
-
-    # while True:
-    #     steerToAngle(0, 250, steering = 32)
-    #     print("yaw",yaw,"target_yaw",target_yaw)
-    #     while yaw > 270:
-    #         print("yaw",yaw,"target_yaw",target_yaw)
-    #         bw.run(-200)
-        
-    #     bw.stop()
-    #     wait(10000)
-
-        
-    # while True:
-    #     global color, direction, lane , predistance , cornergreen, target, greenmove, section
-
-    #     color = rgb_to_color(sensor.rgb())
-
-    #     print("target_yaw",target_yaw,"yaw",yaw)
-
-    #     make_target()
-    #     if section < 4:
-    #         if direction == 0:
-    #             target = (section % 4) * 90 * -1
-    #         else:
-    #             target = (section % 4) * 90 * direction
-    #     else:
-    #         section = 0
-    #         if direction == 0:
-    #             target = (section % 4) * 90 * 1
-    #         else:
-    #             target = (section % 4) * 90 * direction
-
-    #     if color == -1:
-    #         section = section + 1
-    #         steerToAngle(0, 250, steering = -32)
-    #         print(target_yaw)
-
-    #         if section != 4:
-    #             while yaw < (target_yaw - 90):
-    #                 bw.run(-200)
-    #         else:
-    #             while yaw < 358 and yaw > 5:
-    #                 bw.run(-200)
-
-    #         bw.stop()
-
-    #     else:
-    #         gyroPID(1.68, 20, target=target, minPower=200, maxPower=700)      
-  
-    #  while True:
-    #     global color, direction, lane , predistance , cornergreen, target_yaw, greenmove, section
-
-    #     color = rgb_to_color(sensor.rgb())
-        
-    #     #color 1 sec + 1 color -1 sec -1
-    #     if color == 1:
-    #         section = section + 1
-    #         gyroTurn(300, 900, -32, angle= 90)
-    #         ev3.speaker.beep()
-    #     else:
-    #         gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=200, maxPower=700)
-
-
-    #     if direction == 0:
-    #         target_yaw = (section % 4) * 90 * 1
-    #     else:
-    #         target_yaw = (section % 4) * 90 * direction
-
-        
-
-
-        # print(target_yaw)
-###
-
-
-    while True:
-
-        global color, direction, lane , predistance , cornergreen, target_yaw, greenmove, section, firstBlock
-
+    while abs(section) < 12:
+        global color, direction, lane , target_yaw, greenmove, section, firstBlock, distance, passedABlock, timer , saveCD
         color = rgb_to_color(sensor.rgb())
+        target_yaw = (section % 4) * 90 
+        nextSection = 0
+        if (abs(section)%4)+1 != 4:nextSection=(abs(section)%4)+1
+        print("target_yaw",target_yaw,"Memory:",firstBlockPerSection)
+        # if saveCD<timer.time() and (saveCD-1000)<timer.time():
+            # ev3.speaker.beep(100, 100)
 
-        if direction == 0:
-            target_yaw = (section % 4) * 90 * 1
-        else:
-            target_yaw = (section % 4) * 90 * direction
-
-        # print("cornergreen:", cornergreen, "IRDist:", IRDist,"greenmove:", greenmove,"target",target,"gyro:",gyro.angle())
-
-        # senseCam()
-        if IRDist < 150 and greenmove == False:  # corner
+        if lane == 1 and sign(blockX) == direction and distance <= 180 and saveCD<timer.time():
+            gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=200, maxPower=700, resetKI=False)
+            # ev3.speaker.beep(100, 100)
             firstBlock = True
-            # corner()  
-            nextSection = 0
-            if (abs(section) % 4) + 1 == 4:
-                nextSection = 0
-            else:
-                nextSection = (abs(section) % 4) + 1
-
-            if firstBlockPerSection[nextSection] != 0: # first block of next section is already saved
-
-                if firstBlockPerSection[nextSection] == -1:  # first block of next section is green
-                    corner(laneOut=-1)   
-                elif firstBlockPerSection[nextSection] == 1:  # first block of next section is red
-                    corner(laneOut=1)
-
-            else:  # no stored color yet
-                corner(laneOut=1)
+            storeFirstBlockPerSection((abs(section)%4)+1,BRB*direction)
 
 
-        elif distance == 999 and predistance < 999:
-            passBlock = True
-            predistance = 999
 
-        elif distance < 160 and distance != 999: # block detected is too near
-            if BRB == 1 and lane != 1 :  #red                
+        #corner movement
+        elif IRDist < 150 and greenmove == False:
+            firstBlock = True
+            print("section: ",section,"Memory: ",firstBlockPerSection)
+            if firstBlockPerSection[nextSection] != 0: # first movement of next section is already saved
+                if nextSection == 0:
+                    if firstBlockPerSection[nextSection] == 1:corner(laneOut=1,saved=True)
+                    #elif firstBlockPerSection[nextSection] == -1:corner(laneOut=-1,saved=True)
+                    else:corner(laneOut=0,saved=True)
+                else:
+                    if firstBlockPerSection[nextSection] == 1:corner(laneOut=1,saved=True)
+                    else:corner(laneOut=-1,saved=True)
+            else:# no stored block yet
+                if nextSection % 4 == 0:
+                    corner(laneOut=0,saved=False)
+                else:
+                    if lane==1:
+                        corner(laneOut=1,saved=True)
+                    elif lane==-1:
+                        corner(laneOut=1,saved=False)
+        # block detected is too near
+        elif distance < 170 and distance != 999:
+            back=False
 
+            #clockwise=red,counterclockwise=green
+            if lane == -1 and BRB == (1 * direction):back=True
+    
+            #clockwise=red,counterclockwise=green
+            #sign(blockX) != direction means not ignored block
+            elif lane == 1 and BRB == (-1 * direction) and sign(blockX) != direction:back=True
+            if back:
+                steerToAngle(0, 300, steering = 0)
                 while distance <= 190 and distance != 999:
-                    gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=-200, maxPower=-700)        
-                    
-                bw.stop()     
-
-                storeFirstBlockPerSection(1) 
-
-            elif BRB == -1 and lane != -1 and blockX < 0:  #green               
-
-                while distance <= 190 and distance != 999:
-                    gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=-200, maxPower=-700)        
-                    
+                    # ev3.speaker.beep(100, 100)
+                    gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=-200, maxPower=-700, resetKI=True)
                 bw.stop()
-
-                storeFirstBlockPerSection(-1)
-
             else:
-                gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=200, maxPower=700)        
-        
-        elif distance <= 205:  # block detected
-            predistance = distance
-            if lane == 1 and blockX < 0:  #red                
-                
-                shiftlane2()
+                gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=200, maxPower=700, resetKI=True)   
 
-                # storeFirstBlockPerSection(1)
 
-            elif lane == -1:  #green               
-
-                shiftlane2()
-                # storeFirstBlockPerSection(-1)
-
-            elif lane == 1 and blockX > 0 and BRB == -1:  # green              
-
-                storeFirstBlockPerSection(-1)
-
-                cornergreen = True
-                gyroPID(1.75, 0.0025, target_yaw=target_yaw, minPower=200, maxPower=700)
-
+        # block avoidance
+        elif distance <= 205:
+            #sign(blockX) != direction means not ignored block
+            if lane == -1 and sign(blockX) != direction:shiftlane2()
+            elif lane == 1 and sign(blockX) != direction:shiftlane2()
+            else:gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=200, maxPower=700, resetKI=True)
+        # no block seen
         else:
-            # ev3.speaker.beep()
-            gyroPID(1.75, 0.055, target_yaw=target_yaw, ki=0.000001, minPower=200, maxPower=700, resetKI=False) 
+            gyroPID(kp, kd, target_yaw=target_yaw, ki=ki, minPower=200, maxPower=700, resetKI=False)    
 
 
-        print("section: ", section)
-        print("firstBlock:", firstBlock)
-        print(firstBlockPerSection)       
+    # else: for ending
+  
 
 
-def intersectionCount():
-    global run, direction, color
+
+
+
+def senseCam():
+    start_yaw = None
     while True:
-        color = rgb_to_color(sensor.rgb())
+        status, data = st.call('cam')
+        globals()['balance'], globals()['BRB'], globals()['distance'], globals()['IRDist'], bad_yaw, globals()['blockX'] = data
+        
+        if start_yaw==None:
+            start_yaw=bad_yaw
+        if bad_yaw-start_yaw > 0:
+            final_yaw=bad_yaw - start_yaw
+        else:
+            final_yaw= 360 + (bad_yaw - start_yaw)
+
+        if round(final_yaw)==360:
+            final_yaw=0
+        globals()['yaw']=round(final_yaw)
+
+        # print("BRB", BRB, "yaw", yaw)
+
+
+
+threading.Thread(target=senseCam).start()
+# threading.Thread(target=intersectionCount).start()
+wait(250)
+mainThread()
+
+
+
+
+# def intersectionCount():
+#     global run, direction, color
+#     while True:
+#         color = rgb_to_color(sensor.rgb())
         # print("color", color)
 
     # while run <= 11:
@@ -750,29 +536,3 @@ def intersectionCount():
 
 
 #         #globals()['IRDist'],
-
-def senseCam():
-    start_yaw = None
-    while True:
-        status, data = st.call('cam')
-        globals()['balance'], globals()['BRB'], globals()['distance'], globals()['IRDist'], bad_yaw, globals()['blockX'] = data
-        
-        if start_yaw==None:
-            start_yaw=bad_yaw
-        if bad_yaw-start_yaw > 0:
-            final_yaw=bad_yaw - start_yaw
-        else:
-            final_yaw= 360 + (bad_yaw - start_yaw)
-
-        if round(final_yaw)==360:
-            final_yaw=0
-        globals()['yaw']=round(final_yaw)
-
-
-
-threading.Thread(target=senseCam).start()
-# threading.Thread(target=intersectionCount).start()
-mainThread()
-
-# while True:
-#     print(fw.angle())
